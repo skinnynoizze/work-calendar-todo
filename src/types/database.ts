@@ -85,14 +85,14 @@ export type DbTask = Database['public']['Tables']['tasks']['Row'];
 export const taskToDbTask = (task: Task): Database['public']['Tables']['tasks']['Insert'] => ({
   id: task.id,
   title: task.title,
-  description: task.description,
+  description: task.description || null,
   category: task.category,
   priority: task.priority,
-  recurrence: task.recurrence,
+  recurrence: task.recurrence || null,
   start_date: task.startDate,
-  end_date: task.endDate,
-  completed: task.completed,
-  completed_dates: task.completedDates,
+  end_date: task.endDate || null,
+  completed: task.completed || false,
+  completed_dates: task.completedDates || [],
   color: task.color,
 });
 

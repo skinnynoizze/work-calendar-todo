@@ -167,7 +167,6 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
           table: 'tasks' 
         }, 
         (payload) => {
-          console.log('Real-time update:', payload);
           // Refresh tasks when any change occurs
           refreshTasks();
         }
