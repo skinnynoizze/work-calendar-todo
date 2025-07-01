@@ -54,9 +54,9 @@ export default function DayTasksModal({
             </p>
           ) : (
             <div className="space-y-3">
-              {sortedTasks.map((taskInstance, index) => (
+              {sortedTasks.map((taskInstance) => (
                 <div
-                  key={`${taskInstance.taskId}-${index}`}
+                  key={`${taskInstance.taskId}-${taskInstance.date}`}
                   onClick={() => onToggleTask(taskInstance.taskId, dateKey)}
                   className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
                     taskInstance.completed 

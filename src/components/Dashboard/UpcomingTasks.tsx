@@ -54,9 +54,9 @@ export default function UpcomingTasks({ taskInstances, onToggleTask }: UpcomingT
             <h4 className="text-sm font-medium text-red-700">Tareas Atrasadas</h4>
           </div>
           <div className="space-y-2">
-            {overdueTasks.slice(0, UI_LIMITS.OVERDUE_TASKS_PREVIEW).map((task, index) => (
+            {overdueTasks.slice(0, UI_LIMITS.OVERDUE_TASKS_PREVIEW).map((task) => (
               <div
-                key={index}
+                key={`overdue-${task.taskId}-${task.date}`}
                 className="flex items-center justify-between p-2 bg-red-50 border border-red-200 rounded-lg"
               >
                 <div className="flex-1">
@@ -85,9 +85,9 @@ export default function UpcomingTasks({ taskInstances, onToggleTask }: UpcomingT
             <h4 className="text-sm font-medium text-blue-700">Pendientes Hoy</h4>
           </div>
           <div className="space-y-2">
-            {todayTasks.slice(0, UI_LIMITS.TODAY_TASKS_PREVIEW).map((task, index) => (
+            {todayTasks.slice(0, UI_LIMITS.TODAY_TASKS_PREVIEW).map((task) => (
               <div
-                key={index}
+                key={`today-${task.taskId}-${task.date}`}
                 className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded-lg"
               >
                 <div className="flex-1">
@@ -124,13 +124,13 @@ export default function UpcomingTasks({ taskInstances, onToggleTask }: UpcomingT
             <p className="text-sm">No hay tareas de alta prioridad próximas</p>
           </div>
         ) : (
-          upcomingHighPriorityTasks.map((task, index) => {
+          upcomingHighPriorityTasks.map((task) => {
             const taskDate = new Date(task.date);
             const dateLabel = getRelativeDateLabel(taskDate, today);
 
             return (
               <div
-                key={index}
+                key={`upcoming-${task.taskId}-${task.date}`}
                 className="flex items-center justify-between p-2 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors"
               >
                 <div className="flex-1">

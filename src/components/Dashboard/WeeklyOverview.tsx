@@ -40,14 +40,14 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Resumen Semanal</h3>
       
       <div className="space-y-3">
-        {weeklyTasks.map(({ date, tasks }, index) => {
+        {weeklyTasks.map(({ date, tasks }) => {
           const isToday = formatDate(date) === formatDate(today);
           const completedTasks = tasks.filter(t => t.completed).length;
           const totalTasks = tasks.length;
           const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
           return (
-            <div key={index} className={`p-3 rounded-lg border ${
+            <div key={formatDate(date)} className={`p-3 rounded-lg border ${
               isToday ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
             }`}>
               <div className="flex items-center justify-between mb-2">
@@ -78,9 +78,9 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
                   </div>
                   
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {sortTasksByPriority(tasks).slice(0, UI_LIMITS.WEEKLY_TASKS_PREVIEW).map((task, taskIndex) => (
+                    {sortTasksByPriority(tasks).slice(0, UI_LIMITS.WEEKLY_TASKS_PREVIEW).map((task) => (
                       <button
-                        key={taskIndex}
+                        key={`${task.taskId}-${task.date}`}
                         onClick={() => onToggleTask(task.taskId, task.date)}
                         className={`text-xs px-2 py-1 rounded transition-all ${
                           task.completed

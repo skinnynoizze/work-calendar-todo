@@ -48,10 +48,10 @@ export default function StatsCards({ stats }: StatsCardsProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {cards.map((card, index) => {
+      {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <div key={card.title} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">{card.title}</p>

@@ -49,9 +49,9 @@ export default function CalendarDay({
         </div>
       
       <div className="space-y-1">
-        {sortedTasks.slice(0, UI_LIMITS.CALENDAR_TASKS_PREVIEW).map((taskInstance, index) => (
+        {sortedTasks.slice(0, UI_LIMITS.CALENDAR_TASKS_PREVIEW).map((taskInstance) => (
           <div
-            key={`${taskInstance.taskId}-${index}`}
+            key={`${taskInstance.taskId}-${taskInstance.date}`}
             onClick={(e) => {
               e.stopPropagation();
               onToggleTask(taskInstance.taskId, dateString);

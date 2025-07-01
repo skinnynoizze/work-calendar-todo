@@ -263,9 +263,9 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
                 {/* Dropdown de categorías existentes */}
                 {showCategoryDropdown && filteredCategories.length > 0 && (
                   <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                    {filteredCategories.map((category, index) => (
+                    {filteredCategories.map((category) => (
                       <button
-                        key={index}
+                        key={category.name}
                         type="button"
                         onClick={() => handleCategorySelect(category.name, category.color)}
                         className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center justify-between group"
@@ -399,7 +399,7 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
               <div className="grid grid-cols-7 gap-1">
                 {dayNames.map((day, index) => (
                   <button
-                    key={index}
+                    key={day}
                     type="button"
                     onClick={() => handleDayOfWeekToggle(index)}
                     className={`p-2 text-xs rounded transition-colors ${

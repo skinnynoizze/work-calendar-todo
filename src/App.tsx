@@ -6,6 +6,7 @@ import Dashboard from './components/Dashboard/Dashboard';
 import CalendarView from './components/Calendar/CalendarView';
 import TasksList from './components/Tasks/TasksList';
 import TaskModal from './components/Tasks/TaskModal';
+import { logError } from './utils/errorUtils';
 
 function App() {
   const { 
@@ -49,7 +50,7 @@ function App() {
       }
       setIsTaskModalOpen(false);
     } catch (error) {
-      console.error('Error saving task:', error);
+      logError(error, { operation: 'save-task-ui', metadata: { isEdit: !!editingTask } });
     }
   };
 
@@ -58,7 +59,7 @@ function App() {
       try {
         await deleteTask(taskId);
       } catch (error) {
-        console.error('Error deleting task:', error);
+        logError(error, { operation: 'delete-task-ui', taskId });
       }
     }
   };
@@ -67,7 +68,7 @@ function App() {
     try {
       await toggleTaskCompletion(taskId, date);
     } catch (error) {
-      console.error('Error toggling task:', error);
+      logError(error, { operation: 'toggle-task-ui', taskId, metadata: { date } });
     }
   };
 

@@ -24,24 +24,41 @@ export const generateTaskInstances = (
     return instances;
   }
 
-  let currentDate = new Date(Math.max(taskStartDate.getTime(), startDate.getTime()));
+  // Optimización: calcular directamente las fechas válidas en lugar de iterar día por día
+  const iterationEndDate = taskEndDate && taskEndDate < endDate ? taskEndDate : endDate;
   
-  while (currentDate <= endDate && (!taskEndDate || currentDate <= taskEndDate)) {
-    if (shouldGenerateInstance(task, currentDate)) {
-      instances.push({
-        taskId: task.id,
-        date: formatDate(currentDate),
-        completed: task.completedDates.includes(formatDate(currentDate)),
-        task
-      });
-    }
-    
-    // Move to next day for iteration
-    currentDate = addDays(currentDate, 1);
-    
-    // Safety check to prevent infinite loops
-    if (currentDate.getTime() > endDate.getTime() + (TIME_CONSTANTS.SAFETY_LIMIT_DAYS * TIME_CONSTANTS.MILLISECONDS_PER_DAY)) {
+  switch (task.recurrence.type) {
+    case 'daily': {
+      generateDailyInstances(task, taskStartDate, startDate, iterationEndDate, instances);
       break;
+    }
+    case 'weekly': {
+      generateWeeklyInstances(task, taskStartDate, startDate, iterationEndDate, instances);
+      break;
+    }
+    case 'monthly': {
+      generateMonthlyInstances(task, taskStartDate, startDate, iterationEndDate, instances);
+      break;
+    }
+    default: {
+      // Fallback to old method for complex cases
+      let currentDate = new Date(Math.max(taskStartDate.getTime(), startDate.getTime()));
+      while (currentDate <= iterationEndDate) {
+        if (shouldGenerateInstance(task, currentDate)) {
+          instances.push({
+            taskId: task.id,
+            date: formatDate(currentDate),
+            completed: task.completedDates.includes(formatDate(currentDate)),
+            task
+          });
+        }
+        currentDate = addDays(currentDate, 1);
+        
+        // Safety check
+        if (currentDate.getTime() > endDate.getTime() + (TIME_CONSTANTS.SAFETY_LIMIT_DAYS * TIME_CONSTANTS.MILLISECONDS_PER_DAY)) {
+          break;
+        }
+      }
     }
   }
   
@@ -271,3 +288,124 @@ export const getRecurrenceLabel = (recurrence: Task['recurrence']): string => {
   
   return label;
 };
+
+// ===== FUNCIONES OPTIMIZADAS PARA GENERACIÓN DE INSTANCIAS =====
+
+function generateDailyInstances(
+  task: Task, 
+  taskStartDate: Date, 
+  startDate: Date, 
+  endDate: Date, 
+  instances: TaskInstance[]
+): void {
+  const interval = task.recurrence.interval;
+  const selectedDays = task.recurrence.daysOfWeek;
+  
+  // Optimización: calcular primer día válido
+  let currentDate = new Date(Math.max(taskStartDate.getTime(), startDate.getTime()));
+  
+  while (currentDate <= endDate) {
+    const daysDiff = Math.floor((currentDate.getTime() - taskStartDate.getTime()) / TIME_CONSTANTS.MILLISECONDS_PER_DAY);
+    const isDayIntervalMatch = daysDiff >= 0 && daysDiff % interval === 0;
+    
+    if (isDayIntervalMatch) {
+      const dayOfWeek = currentDate.getDay();
+      
+      // Si hay días específicos seleccionados, verificar
+      if (!selectedDays || selectedDays.length === 0 || selectedDays.includes(dayOfWeek)) {
+        instances.push({
+          taskId: task.id,
+          date: formatDate(currentDate),
+          completed: task.completedDates.includes(formatDate(currentDate)),
+          task
+        });
+      }
+    }
+    
+    // Optimización: saltar al siguiente intervalo en lugar de día por día
+    currentDate = addDays(currentDate, interval);
+  }
+}
+
+function generateWeeklyInstances(
+  task: Task, 
+  taskStartDate: Date, 
+  startDate: Date, 
+  endDate: Date, 
+  instances: TaskInstance[]
+): void {
+  const interval = task.recurrence.interval;
+  const selectedDays = task.recurrence.daysOfWeek || [];
+  
+  if (selectedDays.length === 0) {
+    // Si no hay días específicos, usar el día de la semana de inicio
+    selectedDays.push(taskStartDate.getDay());
+  }
+  
+  // Optimización: calcular semanas válidas y luego días específicos
+  const weekStart = new Date(taskStartDate);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay()); // Inicio de semana
+  
+  while (weekStart <= endDate) {
+    const weeksDiff = Math.floor((weekStart.getTime() - (new Date(taskStartDate.getTime() - taskStartDate.getDay() * TIME_CONSTANTS.MILLISECONDS_PER_DAY)).getTime()) / TIME_CONSTANTS.MILLISECONDS_PER_WEEK);
+    
+    if (weeksDiff >= 0 && weeksDiff % interval === 0) {
+      // Generar instancias para los días seleccionados de esta semana
+      selectedDays.forEach(dayOfWeek => {
+        const instanceDate = new Date(weekStart);
+        instanceDate.setDate(instanceDate.getDate() + dayOfWeek);
+        
+        if (instanceDate >= startDate && instanceDate <= endDate && instanceDate >= taskStartDate) {
+          instances.push({
+            taskId: task.id,
+            date: formatDate(instanceDate),
+            completed: task.completedDates.includes(formatDate(instanceDate)),
+            task
+          });
+        }
+      });
+    }
+    
+    // Saltar al siguiente intervalo de semanas
+    weekStart.setDate(weekStart.getDate() + (interval * 7));
+  }
+}
+
+function generateMonthlyInstances(
+  task: Task, 
+  taskStartDate: Date, 
+  startDate: Date, 
+  endDate: Date, 
+  instances: TaskInstance[]
+): void {
+  const interval = task.recurrence.interval;
+  const dayOfMonth = task.recurrence.dayOfMonth || taskStartDate.getDate();
+  
+  // Optimización: iterar por meses en lugar de por días
+  const currentMonth = new Date(taskStartDate.getFullYear(), taskStartDate.getMonth(), 1);
+  
+  while (currentMonth <= endDate) {
+    const monthsDiff = (currentMonth.getFullYear() - taskStartDate.getFullYear()) * 12 + 
+                      (currentMonth.getMonth() - taskStartDate.getMonth());
+    
+    if (monthsDiff >= 0 && monthsDiff % interval === 0) {
+      const instanceDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), dayOfMonth);
+      
+      // Verificar que la fecha sea válida (ej: 31 de febrero se ajusta)
+      if (instanceDate.getMonth() === currentMonth.getMonth() && 
+          instanceDate >= startDate && 
+          instanceDate <= endDate && 
+          instanceDate >= taskStartDate) {
+        instances.push({
+          taskId: task.id,
+          date: formatDate(instanceDate),
+          completed: task.completedDates.includes(formatDate(instanceDate)),
+          task
+        });
+      }
+    }
+    
+    // Saltar al siguiente intervalo de meses
+    currentMonth.setMonth(currentMonth.getMonth() + interval);
+  }
+}
