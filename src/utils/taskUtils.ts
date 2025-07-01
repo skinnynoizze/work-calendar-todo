@@ -1,6 +1,6 @@
 import { Task, TaskInstance } from '../types';
 import { formatDate, parseDate, addDays } from './dateUtils';
-import { TIME_CONSTANTS, PRIORITY_ORDER, PRIORITY_COLORS, PRIORITY_LABELS, TASK_STATE_COLORS, RECURRENCE_LABELS } from './constants';
+import { TIME_CONSTANTS, PRIORITY_ORDER, PRIORITY_COLORS, PRIORITY_LABELS, TASK_STATE_COLORS, RECURRENCE_LABELS, LOCALE_NAMES } from './constants';
 
 export const generateTaskInstances = (
   task: Task,
@@ -162,38 +162,18 @@ export const getTaskStats = (
 } => {
   const today = formatDate(new Date());
   
-  // Si hay instancias pre-calculadas, usarlas
+  // Si hay instancias pre-calculadas, usarlas (comportamiento optimizado)
   if (preCalculatedInstances) {
     return getStatsFromInstances(preCalculatedInstances, today);
   }
   
-  // Fallback: calcular instancias (comportamiento original)
-  let totalToday = 0;
-  let completedToday = 0;
-
-  tasks.forEach(task => {
-    const instances = generateTaskInstances(
-      task,
-      new Date(),
-      new Date()
-    );
-    
-    instances.forEach(instance => {
-      if (instance.date === today) {
-        totalToday++;
-        if (instance.completed) {
-          completedToday++;
-        }
-      }
-    });
-  });
-
-  return {
-    total: totalToday,
-    completed: completedToday,
-    pending: totalToday - completedToday,
-    completionRate: totalToday > 0 ? (completedToday / totalToday) * 100 : 0
-  };
+  // Fallback: calcular instancias solo para hoy (comportamiento original)
+  const todayDate = new Date();
+  const allTodayInstances = tasks.flatMap(task => 
+    generateTaskInstances(task, todayDate, todayDate)
+  );
+  
+  return getStatsFromInstances(allTodayInstances, today);
 };
 
 export const sortTasksByPriority = (tasks: TaskInstance[]): TaskInstance[] => {
@@ -247,6 +227,11 @@ export const getTaskStateColor = (completed: boolean, task: Task): string => {
   return completed ? TASK_STATE_COLORS.completed : getTaskBackgroundColor(task);
 };
 
+// Función para formatear porcentaje de completado de forma consistente
+export const formatCompletionRate = (rate: number): string => {
+  return `${Math.round(rate)}%`;
+};
+
 // Función para obtener etiqueta de recurrencia completa
 export const getRecurrenceLabel = (recurrence: Task['recurrence']): string => {
   if (recurrence.type === 'none') return RECURRENCE_LABELS.none;
@@ -279,8 +264,7 @@ export const getRecurrenceLabel = (recurrence: Task['recurrence']): string => {
     } else if (selectedDays.length === 7) {
       label += ' - Todos los días';
     } else {
-      const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
-      const days = selectedDays.map(d => dayNames[d]).join(', ');
+      const days = selectedDays.map(d => LOCALE_NAMES.dayNames[d]).join(', ');
       label += ` - ${days}`;
     }
   }

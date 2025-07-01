@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TaskInstance } from '../../types';
 import { formatDate } from '../../utils/dateUtils';
 import { getTaskStyles, sortTasksByPriority, getTaskStateColor } from '../../utils/taskUtils';
+import { LOCALE_NAMES, UI_LIMITS } from '../../utils/constants';
 import DayTasksModal from '../Calendar/DayTasksModal';
 
 interface WeeklyOverviewProps {
@@ -17,7 +18,7 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTasks, setSelectedTasks] = useState<TaskInstance[]>([]);
   
-  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const { dayNames } = LOCALE_NAMES;
   const today = new Date();
 
   const openModal = (date: Date, tasks: TaskInstance[]) => {
@@ -77,7 +78,7 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
                   </div>
                   
                   <div className="flex flex-wrap gap-1 mt-2">
-                    {sortTasksByPriority(tasks).slice(0, 3).map((task, taskIndex) => (
+                    {sortTasksByPriority(tasks).slice(0, UI_LIMITS.WEEKLY_TASKS_PREVIEW).map((task, taskIndex) => (
                       <button
                         key={taskIndex}
                         onClick={() => onToggleTask(task.taskId, task.date)}
@@ -92,18 +93,18 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
                         }}
                         title={task.task.title}
                       >
-                        {task.task.title.length > 15 
-                          ? `${task.task.title.slice(0, 15)}...`
+                        {task.task.title.length > UI_LIMITS.TASK_TITLE_TRUNCATE 
+                          ? `${task.task.title.slice(0, UI_LIMITS.TASK_TITLE_TRUNCATE)}...`
                           : task.task.title
                         }
                       </button>
                     ))}
-                    {tasks.length > 3 && (
+                    {tasks.length > UI_LIMITS.WEEKLY_TASKS_PREVIEW && (
                       <button
                         onClick={() => openModal(date, tasks)}
                         className="text-xs text-blue-600 px-2 py-1 hover:text-blue-800 hover:bg-gray-100 rounded transition-colors"
                       >
-                        +{tasks.length - 3}
+                        +{tasks.length - UI_LIMITS.WEEKLY_TASKS_PREVIEW}
                       </button>
                     )}
                   </div>

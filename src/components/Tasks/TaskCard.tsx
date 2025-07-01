@@ -1,6 +1,6 @@
 import { Edit2, Trash2, Calendar, Repeat, AlertCircle } from 'lucide-react';
 import { Task } from '../../types';
-import { getTaskStyles, generateTaskInstances, getPriorityLabel, getRecurrenceLabel, getTaskStateColor } from '../../utils/taskUtils';
+import { getTaskStyles, generateTaskInstances, getPriorityLabel, getRecurrenceLabel } from '../../utils/taskUtils';
 import { formatDate } from '../../utils/dateUtils';
 
 interface TaskCardProps {

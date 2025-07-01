@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TaskInstance } from '../../types';
 import { getTaskStyles, sortTasksByPriority, getTaskStateColor } from '../../utils/taskUtils';
 import { formatDate } from '../../utils/dateUtils';
+import { UI_LIMITS } from '../../utils/constants';
 import DayTasksModal from './DayTasksModal';
 
 interface CalendarDayProps {
@@ -48,7 +49,7 @@ export default function CalendarDay({
         </div>
       
       <div className="space-y-1">
-        {sortedTasks.slice(0, 3).map((taskInstance, index) => (
+        {sortedTasks.slice(0, UI_LIMITS.CALENDAR_TASKS_PREVIEW).map((taskInstance, index) => (
           <div
             key={`${taskInstance.taskId}-${index}`}
             onClick={(e) => {
@@ -72,7 +73,7 @@ export default function CalendarDay({
           </div>
         ))}
         
-        {sortedTasks.length > 3 && (
+        {sortedTasks.length > UI_LIMITS.CALENDAR_TASKS_PREVIEW && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -80,7 +81,7 @@ export default function CalendarDay({
             }}
             className="w-full text-xs text-blue-600 text-center hover:text-blue-800 hover:bg-gray-100 rounded p-1 transition-colors"
           >
-            +{sortedTasks.length - 3} más
+            +{sortedTasks.length - UI_LIMITS.CALENDAR_TASKS_PREVIEW} más
           </button>
         )}
       </div>

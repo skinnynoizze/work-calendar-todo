@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Plus, Search, Filter } from 'lucide-react';
 import { Task } from '../../types';
-import { getTaskStats, sortPlainTasksByPriority } from '../../utils/taskUtils';
+import { getTaskStats, sortPlainTasksByPriority, formatCompletionRate } from '../../utils/taskUtils';
 import { useTaskInstancesForDashboard } from '../../hooks/useTaskInstances';
 import TaskCard from './TaskCard';
 
@@ -71,7 +71,7 @@ export default function TasksList({
             <div className="text-sm text-orange-700">Pendientes</div>
           </div>
           <div className="bg-purple-50 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-purple-600">{Math.round(stats.completionRate)}%</div>
+            <div className="text-2xl font-bold text-purple-600">{formatCompletionRate(stats.completionRate)}</div>
             <div className="text-sm text-purple-700">Completado</div>
           </div>
         </div>

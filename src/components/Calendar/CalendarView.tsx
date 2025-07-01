@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { Task } from '../../types';
 import { getMonthDays, formatDate } from '../../utils/dateUtils';
 import { useTaskInstancesForCalendar } from '../../hooks/useTaskInstances';
+import { LOCALE_NAMES } from '../../utils/constants';
 import CalendarDay from './CalendarDay';
 
 interface CalendarViewProps {
@@ -39,7 +40,7 @@ export default function CalendarView({ tasks, onToggleTask, onCreateTask }: Cale
     'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
   ];
 
-  const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const { dayNames } = LOCALE_NAMES;
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">

@@ -58,4 +58,14 @@ export const RECURRENCE_LABELS = {
   daily: 'Diario',
   weekly: 'Semanal', 
   monthly: 'Mensual',
+} as const;
+
+// Límites de UI para mostrar elementos
+export const UI_LIMITS = {
+  CALENDAR_TASKS_PREVIEW: 3,
+  WEEKLY_TASKS_PREVIEW: 3,
+  UPCOMING_HIGH_PRIORITY: 5,
+  OVERDUE_TASKS_PREVIEW: 3,
+  TODAY_TASKS_PREVIEW: 4,
+  TASK_TITLE_TRUNCATE: 15,
 } as const; 

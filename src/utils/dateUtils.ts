@@ -65,6 +65,11 @@ export const getWeekNumber = (date: Date): number => {
   return Math.ceil((((d.getTime() - yearStart.getTime()) / TIME_CONSTANTS.MILLISECONDS_PER_DAY) + 1) / 7);
 };
 
+// Función para obtener string de fecha de hoy (evita múltiples instanciaciones)
+export const getTodayString = (): string => {
+  return formatDate(new Date());
+};
+
 // Función para obtener etiqueta de fecha relativa
 export const getRelativeDateLabel = (date: Date, referenceDate: Date = new Date()): string => {
   const tomorrow = new Date(referenceDate);

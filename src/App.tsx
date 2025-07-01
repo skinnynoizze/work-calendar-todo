@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Task, ViewMode } from './types';
 import { useSupabaseTasks } from './hooks/useSupabaseTasks';
-import { generateId } from './utils/idUtils';
 import Header from './components/Layout/Header';
 import Dashboard from './components/Dashboard/Dashboard';
 import CalendarView from './components/Calendar/CalendarView';
@@ -39,10 +38,10 @@ function App() {
         // Update existing task
         await updateTask(editingTask.id, taskData);
       } else {
-        // Create new task
-        const newTask: Task = {
+        // Create new task - Supabase will generate the ID automatically
+        const newTask = {
           ...taskData,
-          id: generateId(),
+          id: crypto.randomUUID(), // Generate client-side UUID
           createdAt: new Date().toISOString(),
           completedDates: [],
         };

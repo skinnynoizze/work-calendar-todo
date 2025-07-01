@@ -2,6 +2,7 @@ import { Clock, AlertTriangle } from 'lucide-react';
 import { TaskInstancesResult } from '../../types';
 import { sortTasksByPriority, getTaskStyles } from '../../utils/taskUtils';
 import { formatDate, getRelativeDateLabel } from '../../utils/dateUtils';
+import { UI_LIMITS } from '../../utils/constants';
 
 interface UpcomingTasksProps {
   taskInstances: TaskInstancesResult;
@@ -28,7 +29,7 @@ export default function UpcomingTasks({ taskInstances, onToggleTask }: UpcomingT
         instance.date > formatDate(today) // Solo futuras, no hoy
       )
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  ).slice(0, 5);
+  ).slice(0, UI_LIMITS.UPCOMING_HIGH_PRIORITY);
 
   // Get overdue tasks using pre-calculated instances
   const yesterday = new Date(today);
@@ -53,7 +54,7 @@ export default function UpcomingTasks({ taskInstances, onToggleTask }: UpcomingT
             <h4 className="text-sm font-medium text-red-700">Tareas Atrasadas</h4>
           </div>
           <div className="space-y-2">
-            {overdueTasks.slice(0, 3).map((task, index) => (
+            {overdueTasks.slice(0, UI_LIMITS.OVERDUE_TASKS_PREVIEW).map((task, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-2 bg-red-50 border border-red-200 rounded-lg"
@@ -84,7 +85,7 @@ export default function UpcomingTasks({ taskInstances, onToggleTask }: UpcomingT
             <h4 className="text-sm font-medium text-blue-700">Pendientes Hoy</h4>
           </div>
           <div className="space-y-2">
-            {todayTasks.slice(0, 4).map((task, index) => (
+            {todayTasks.slice(0, UI_LIMITS.TODAY_TASKS_PREVIEW).map((task, index) => (
               <div
                 key={index}
                 className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 rounded-lg"

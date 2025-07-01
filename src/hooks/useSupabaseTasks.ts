@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../utils/supabase';
-import { taskToDbTask, dbTaskToTask } from '../types/database';
-import type { Task } from '../types/tasks';
+import { taskToDbTask, dbTaskToTask, type Database } from '../types/database';
+import type { Task } from '../types';
 
 interface UseSupabaseTasksReturn {
   tasks: Task[];
@@ -73,7 +73,7 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
       setError(null);
       
       // Convert Task updates to database format
-      const dbUpdates: any = {};
+      const dbUpdates: Partial<Database['public']['Tables']['tasks']['Update']> = {};
       if (updates.title !== undefined) dbUpdates.title = updates.title;
       if (updates.description !== undefined) dbUpdates.description = updates.description;
       if (updates.category !== undefined) dbUpdates.category = updates.category;
@@ -166,7 +166,7 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
           schema: 'public', 
           table: 'tasks' 
         }, 
-        (payload) => {
+        () => {
           // Refresh tasks when any change occurs
           refreshTasks();
         }

@@ -1,4 +1,5 @@
 import { CheckCircle, Clock, Target, TrendingUp } from 'lucide-react';
+import { formatCompletionRate } from '../../utils/taskUtils';
 
 interface StatsCardsProps {
   stats: {
@@ -37,7 +38,7 @@ export default function StatsCards({ stats }: StatsCardsProps) {
     },
     {
       title: 'Tasa de Completado',
-      value: `${Math.round(stats.completionRate)}%`,
+      value: formatCompletionRate(stats.completionRate),
       icon: TrendingUp,
       color: 'purple',
       bgColor: 'bg-purple-50',

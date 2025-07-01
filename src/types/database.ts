@@ -1,4 +1,4 @@
-import type { Task } from './tasks';
+import type { Task } from './';
 
 export interface Database {
   public: {
@@ -108,4 +108,5 @@ export const dbTaskToTask = (dbTask: DbTask): Task => ({
   completed: dbTask.completed,
   completedDates: dbTask.completed_dates,
   color: dbTask.color,
+  createdAt: dbTask.created_at,
 }); 
