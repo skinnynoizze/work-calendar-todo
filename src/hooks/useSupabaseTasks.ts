@@ -18,6 +18,7 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isLocalUpdate, setIsLocalUpdate] = useState(false);
 
   // Fetch all tasks from Supabase
   const refreshTasks = useCallback(async () => {
@@ -48,29 +49,49 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
   const addTask = useCallback(async (task: Task) => {
     try {
       setError(null);
+      setIsLocalUpdate(true);
+      
       const dbTask = taskToDbTask(task);
       
-      const { error: insertError } = await supabase
+      const { data, error: insertError } = await supabase
         .from('tasks')
-        .insert([dbTask]);
+        .insert([dbTask])
+        .select()
+        .single();
 
       if (insertError) {
         throw insertError;
       }
 
-      // Refresh tasks to get the latest data
-      await refreshTasks();
+      // Actualización optimista: agregar la tarea al estado local
+      if (data) {
+        const newTask = dbTaskToTask(data);
+        setTasks(prev => [newTask, ...prev]);
+      }
+
+      // Resetear flag después de un breve delay
+      setTimeout(() => setIsLocalUpdate(false), 100);
     } catch (err) {
       console.error('Error adding task:', err);
       setError(err instanceof Error ? err.message : 'Error adding task');
+      setIsLocalUpdate(false);
       throw err;
     }
-  }, [refreshTasks]);
+  }, []);
 
   // Update an existing task
   const updateTask = useCallback(async (id: string, updates: Partial<Task>) => {
     try {
       setError(null);
+      setIsLocalUpdate(true);
+      
+      // Guardar estado actual por si necesitamos revertir
+      const previousTasks = tasks;
+      
+      // Actualización optimista: actualizar estado local inmediatamente
+      setTasks(prev => prev.map(task => 
+        task.id === id ? { ...task, ...updates } : task
+      ));
       
       // Convert Task updates to database format
       const dbUpdates: Partial<Database['public']['Tables']['tasks']['Update']> = {};
@@ -93,22 +114,32 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
         .eq('id', id);
 
       if (updateError) {
+        // Revertir si hay error
+        setTasks(previousTasks);
         throw updateError;
       }
 
-      // Refresh tasks to get the latest data
-      await refreshTasks();
+      // Resetear flag después de un breve delay
+      setTimeout(() => setIsLocalUpdate(false), 100);
     } catch (err) {
       console.error('Error updating task:', err);
       setError(err instanceof Error ? err.message : 'Error updating task');
+      setIsLocalUpdate(false);
       throw err;
     }
-  }, [refreshTasks]);
+  }, [tasks]);
 
   // Delete a task
   const deleteTask = useCallback(async (id: string) => {
     try {
       setError(null);
+      setIsLocalUpdate(true);
+
+      // Guardar estado actual por si necesitamos revertir
+      const previousTasks = tasks;
+      
+      // Actualización optimista: remover de estado local inmediatamente
+      setTasks(prev => prev.filter(t => t.id !== id));
       
       const { error: deleteError } = await supabase
         .from('tasks')
@@ -116,19 +147,22 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
         .eq('id', id);
 
       if (deleteError) {
+        // Revertir si hay error
+        setTasks(previousTasks);
         throw deleteError;
       }
 
-      // Refresh tasks to get the latest data
-      await refreshTasks();
+      // Resetear flag después de un breve delay
+      setTimeout(() => setIsLocalUpdate(false), 100);
     } catch (err) {
       console.error('Error deleting task:', err);
       setError(err instanceof Error ? err.message : 'Error deleting task');
+      setIsLocalUpdate(false);
       throw err;
     }
-  }, [refreshTasks]);
+  }, [tasks]);
 
-  // Toggle task completion for a specific date
+  // Toggle task completion for a specific date with optimistic updates
   const toggleTaskCompletion = useCallback(async (id: string, date: string) => {
     try {
       setError(null);
@@ -143,13 +177,42 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
         ? task.completedDates.filter(d => d !== date)
         : [...task.completedDates, date];
 
-      await updateTask(id, { completedDates: newCompletedDates });
+      // Optimistic update: actualizar estado local inmediatamente
+      const updatedTasks = tasks.map(t => 
+        t.id === id 
+          ? { ...t, completedDates: newCompletedDates }
+          : t
+      );
+      setTasks(updatedTasks);
+
+      // Marcar como actualización local para evitar doble refresh
+      setIsLocalUpdate(true);
+
+      // Actualizar en la base de datos en background
+      const dbUpdates: Partial<Database['public']['Tables']['tasks']['Update']> = {
+        completed_dates: newCompletedDates,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error: updateError } = await supabase
+        .from('tasks')
+        .update(dbUpdates)
+        .eq('id', id);
+
+      if (updateError) {
+        // Si hay error, revertir el cambio optimista
+        setTasks(tasks);
+        throw updateError;
+      }
+
+      // Resetear flag después de un breve delay
+      setTimeout(() => setIsLocalUpdate(false), 100);
     } catch (err) {
       console.error('Error toggling task completion:', err);
       setError(err instanceof Error ? err.message : 'Error toggling task completion');
       throw err;
     }
-  }, [tasks, updateTask]);
+  }, [tasks]);
 
   // Load tasks on mount
   useEffect(() => {
@@ -167,8 +230,10 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
           table: 'tasks' 
         }, 
         () => {
-          // Refresh tasks when any change occurs
-          refreshTasks();
+          // Solo refresh si no acabamos de hacer una actualización local
+          if (!isLocalUpdate) {
+            refreshTasks();
+          }
         }
       )
       .subscribe();
@@ -176,7 +241,7 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
     return () => {
       subscription.unsubscribe();
     };
-  }, [refreshTasks]);
+  }, [refreshTasks, isLocalUpdate]);
 
   return {
     tasks,
