@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Task, ViewMode } from './types';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import { useSupabaseTasks } from './hooks/useSupabaseTasks';
 import { generateId } from './utils/idUtils';
 import Header from './components/Layout/Header';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -9,7 +9,16 @@ import TasksList from './components/Tasks/TasksList';
 import TaskModal from './components/Tasks/TaskModal';
 
 function App() {
-  const [tasks, setTasks] = useLocalStorage<Task[]>('work-organizer-tasks', []);
+  const { 
+    tasks, 
+    loading, 
+    error, 
+    addTask, 
+    updateTask, 
+    deleteTask, 
+    toggleTaskCompletion 
+  } = useSupabaseTasks();
+  
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>();
@@ -24,48 +33,43 @@ function App() {
     setIsTaskModalOpen(true);
   };
 
-  const handleSaveTask = (taskData: Omit<Task, 'id' | 'createdAt' | 'completedDates'>) => {
-    if (editingTask) {
-      // Update existing task
-      setTasks(prev => prev.map(task => 
-        task.id === editingTask.id 
-          ? { ...task, ...taskData }
-          : task
-      ));
-    } else {
-      // Create new task
-      const newTask: Task = {
-        ...taskData,
-        id: generateId(),
-        createdAt: new Date().toISOString(),
-        completedDates: [],
-      };
-      setTasks(prev => [...prev, newTask]);
-    }
-  };
-
-  const handleDeleteTask = (taskId: string) => {
-    if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
-      setTasks(prev => prev.filter(task => task.id !== taskId));
-    }
-  };
-
-  const handleToggleTask = (taskId: string, date: string) => {
-    setTasks(prev => prev.map(task => {
-      if (task.id === taskId) {
-        const completedDates = [...task.completedDates];
-        const dateIndex = completedDates.indexOf(date);
-        
-        if (dateIndex > -1) {
-          completedDates.splice(dateIndex, 1);
-        } else {
-          completedDates.push(date);
-        }
-        
-        return { ...task, completedDates };
+  const handleSaveTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'completedDates'>) => {
+    try {
+      if (editingTask) {
+        // Update existing task
+        await updateTask(editingTask.id, taskData);
+      } else {
+        // Create new task
+        const newTask: Task = {
+          ...taskData,
+          id: generateId(),
+          createdAt: new Date().toISOString(),
+          completedDates: [],
+        };
+        await addTask(newTask);
       }
-      return task;
-    }));
+      setIsTaskModalOpen(false);
+    } catch (error) {
+      console.error('Error saving task:', error);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+      try {
+        await deleteTask(taskId);
+      } catch (error) {
+        console.error('Error deleting task:', error);
+      }
+    }
+  };
+
+  const handleToggleTask = async (taskId: string, date: string) => {
+    try {
+      await toggleTaskCompletion(taskId, date);
+    } catch (error) {
+      console.error('Error toggling task:', error);
+    }
   };
 
   const renderCurrentView = () => {
@@ -94,6 +98,39 @@ function App() {
         return <Dashboard tasks={tasks} onToggleTask={handleToggleTask} />;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Cargando tareas...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 mb-4">
+            <svg className="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Error de conexión</h2>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+          >
+            Reintentar
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

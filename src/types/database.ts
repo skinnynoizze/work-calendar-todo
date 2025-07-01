@@ -1,0 +1,111 @@
+import type { Task } from './tasks';
+
+export interface Database {
+  public: {
+    Tables: {
+      tasks: {
+        Row: {
+          id: string;
+          title: string;
+          description: string | null;
+          category: string;
+          priority: 'low' | 'medium' | 'high';
+          recurrence: {
+            type: 'none' | 'daily' | 'weekly' | 'monthly';
+            interval: number;
+            daysOfWeek?: number[];
+            endDate?: string;
+          } | null;
+          start_date: string;
+          end_date: string | null;
+          completed: boolean;
+          completed_dates: string[];
+          color: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description?: string | null;
+          category: string;
+          priority: 'low' | 'medium' | 'high';
+          recurrence?: {
+            type: 'none' | 'daily' | 'weekly' | 'monthly';
+            interval: number;
+            daysOfWeek?: number[];
+            endDate?: string;
+          } | null;
+          start_date: string;
+          end_date?: string | null;
+          completed?: boolean;
+          completed_dates?: string[];
+          color: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string | null;
+          category?: string;
+          priority?: 'low' | 'medium' | 'high';
+          recurrence?: {
+            type: 'none' | 'daily' | 'weekly' | 'monthly';
+            interval: number;
+            daysOfWeek?: number[];
+            endDate?: string;
+          } | null;
+          start_date?: string;
+          end_date?: string | null;
+          completed?: boolean;
+          completed_dates?: string[];
+          color?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+  };
+}
+
+// Helper type for easy access to Task row
+export type DbTask = Database['public']['Tables']['tasks']['Row'];
+
+// Conversion functions between Task and DbTask
+export const taskToDbTask = (task: Task): Database['public']['Tables']['tasks']['Insert'] => ({
+  id: task.id,
+  title: task.title,
+  description: task.description,
+  category: task.category,
+  priority: task.priority,
+  recurrence: task.recurrence,
+  start_date: task.startDate,
+  end_date: task.endDate,
+  completed: task.completed,
+  completed_dates: task.completedDates,
+  color: task.color,
+});
+
+export const dbTaskToTask = (dbTask: DbTask): Task => ({
+  id: dbTask.id,
+  title: dbTask.title,
+  description: dbTask.description || '',
+  category: dbTask.category,
+  priority: dbTask.priority,
+  recurrence: dbTask.recurrence || { type: 'none', interval: 1 },
+  startDate: dbTask.start_date,
+  endDate: dbTask.end_date || undefined,
+  completed: dbTask.completed,
+  completedDates: dbTask.completed_dates,
+  color: dbTask.color,
+}); 
