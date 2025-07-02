@@ -62,6 +62,7 @@ function App() {
             onCreateTicket={ticketsUI.handleCreateTicket}
             onEditTicket={ticketsUI.handleEditTicket}
             onDeleteTicket={ticketsUI.handleDeleteTicket}
+            onCloseTicket={ticketsUI.handleCloseTicket}
           />
         );
       default:

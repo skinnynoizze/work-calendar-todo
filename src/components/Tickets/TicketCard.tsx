@@ -1,5 +1,5 @@
 import React from 'react';
-import { Edit, Trash2, User, Phone, Calendar, Clock } from 'lucide-react';
+import { Edit, Trash2, User, Phone, Calendar, Clock, CheckCircle } from 'lucide-react';
 import { Ticket } from '../../types';
 import { formatTimeAgo } from '../../utils/dateUtils';
 import { getTicketPriorityColorClasses, getTicketStatusColorClasses, getPriorityDisplayText, getStatusDisplayText } from '../../utils/ticketUtils';
@@ -8,9 +8,10 @@ interface TicketCardProps {
   ticket: Ticket;
   onEdit: () => void;
   onDelete: () => void;
+  onClose?: () => void;
 }
 
-export default function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps) {
+export default function TicketCard({ ticket, onEdit, onDelete, onClose }: TicketCardProps) {
 
   return (
     <div className="bg-white rounded-lg border shadow-sm p-6 hover:shadow-md transition-shadow">
@@ -103,6 +104,15 @@ export default function TicketCard({ ticket, onEdit, onDelete }: TicketCardProps
           <Edit className="h-4 w-4" />
           Editar
         </button>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-50 text-green-700 rounded hover:bg-green-100 transition-colors"
+          >
+            <CheckCircle className="h-4 w-4" />
+            Cerrar Ticket
+          </button>
+        )}
         <button
           onClick={onDelete}
           className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded hover:bg-red-100 transition-colors"

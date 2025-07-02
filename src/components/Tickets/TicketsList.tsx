@@ -10,11 +10,12 @@ interface TicketsListProps {
   onCreateTicket: () => void;
   onEditTicket: (ticket: Ticket) => void;
   onDeleteTicket: (ticketId: string) => void;
+  onCloseTicket: (ticketId: string) => void;
 }
 
-export default function TicketsList({ tickets, onCreateTicket, onEditTicket, onDeleteTicket }: TicketsListProps) {
+export default function TicketsList({ tickets, onCreateTicket, onEditTicket, onDeleteTicket, onCloseTicket }: TicketsListProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('active');
   const [filterPriority, setFilterPriority] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
 
@@ -29,21 +30,49 @@ export default function TicketsList({ tickets, onCreateTicket, onEditTicket, onD
     const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ticket.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ticket.reporter.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || ticket.status === filterStatus;
+    
+    // Handle special "active" filter (excludes closed tickets)
+    let matchesStatus;
+    if (filterStatus === 'active') {
+      matchesStatus = ['open', 'in-progress', 'pending', 'resolved'].includes(ticket.status);
+    } else if (filterStatus === 'all') {
+      matchesStatus = true;
+    } else {
+      matchesStatus = ticket.status === filterStatus;
+    }
+    
     const matchesPriority = filterPriority === 'all' || ticket.priority === filterPriority;
     const matchesCategory = filterCategory === 'all' || ticket.category === filterCategory;
 
     return matchesSearch && matchesStatus && matchesPriority && matchesCategory;
   });
 
-  // Sort tickets by priority and date
+  // Sort tickets: active tickets first, then closed, within each group by priority and date
   const sortedTickets = filteredTickets.sort((a, b) => {
-    // Use centralized priority order
+    // 1. First sort by status: active tickets before closed
+    const aIsActive = ['open', 'in-progress', 'pending', 'resolved'].includes(a.status);
+    const bIsActive = ['open', 'in-progress', 'pending', 'resolved'].includes(b.status);
+    
+    if (aIsActive !== bIsActive) {
+      return bIsActive ? 1 : -1; // Active tickets first
+    }
+    
+    // 2. Within active tickets, resolved tickets go last (ready to close)
+    if (aIsActive && bIsActive) {
+      const aIsResolved = a.status === 'resolved';
+      const bIsResolved = b.status === 'resolved';
+      
+      if (aIsResolved !== bIsResolved) {
+        return aIsResolved ? 1 : -1; // Non-resolved first, resolved last
+      }
+    }
+    
+    // 3. Use centralized priority order
     const priorityDiff = TICKET_PRIORITY_ORDER[a.priority] - TICKET_PRIORITY_ORDER[b.priority];
     
     if (priorityDiff !== 0) return priorityDiff;
     
-    // If same priority, sort by creation date (newest first)
+    // 4. If same priority, sort by creation date (newest first)
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
@@ -109,6 +138,7 @@ export default function TicketsList({ tickets, onCreateTicket, onEditTicket, onD
               onChange={(e) => setFilterStatus(e.target.value)}
               className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
+              <option value="active">Activos</option>
               <option value="all">Todos los estados</option>
               {Object.entries(TICKET_STATUS_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>{label}</option>
@@ -181,6 +211,7 @@ export default function TicketsList({ tickets, onCreateTicket, onEditTicket, onD
               ticket={ticket}
               onEdit={() => onEditTicket(ticket)}
               onDelete={() => onDeleteTicket(ticket.id)}
+              onClose={ticket.status === 'resolved' ? () => onCloseTicket(ticket.id) : undefined}
             />
           ))
         )}

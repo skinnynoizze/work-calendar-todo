@@ -71,6 +71,16 @@ export function useTicketsUI() {
     }
   }, [deleteTicket]);
 
+  const handleCloseTicket = useCallback(async (ticketId: string) => {
+    if (confirm('¿Estás seguro que deseas cerrar este ticket? Esta acción cambiará su estado a cerrado.')) {
+      try {
+        await updateTicket(ticketId, { status: 'closed' });
+      } catch (error) {
+        logError(error, { operation: 'close-ticket-ui', ticketId });
+      }
+    }
+  }, [updateTicket]);
+
   const closeTicketModal = useCallback(() => setIsTicketModalOpen(false), []);
 
   return {
@@ -88,6 +98,7 @@ export function useTicketsUI() {
     handleEditTicket,
     handleSaveTicket,
     handleDeleteTicket,
+    handleCloseTicket,
     closeTicketModal
   };
 } 
