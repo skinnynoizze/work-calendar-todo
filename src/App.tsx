@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Task, Ticket, ViewMode } from './types';
-import { useSupabaseTasks } from './hooks/useSupabaseTasks';
-import { useSupabaseTickets } from './hooks/useSupabaseTickets';
+import { ViewMode } from './types';
+import { useTasksUI } from './hooks/useTasksUI';
+import { useTicketsUI } from './hooks/useTicketsUI';
 import Header from './components/Layout/Header';
 import Dashboard from './components/Dashboard/Dashboard';
 import CalendarView from './components/Calendar/CalendarView';
@@ -9,155 +9,74 @@ import TasksList from './components/Tasks/TasksList';
 import TaskModal from './components/Tasks/TaskModal';
 import TicketsList from './components/Tickets/TicketsList';
 import TicketModal from './components/Tickets/TicketModal';
-import { logError } from './utils/errorUtils';
-import { CONFIRMATION_MESSAGES } from './utils/constants';
 
+/**
+ * App principal - solo maneja routing y layout
+ * 
+ * Arquitectura con hooks UI:
+ * - useTasksUI() encapsula toda la lógica CRUD de tasks
+ * - useTicketsUI() encapsula toda la lógica CRUD de tickets  
+ * - App.tsx se enfoca únicamente en routing y estructura de layout
+ * 
+ * Patrón: Separación de datos (useSupabase*) vs UI (use*UI)
+ */
 function App() {
-  const { 
-    tasks, 
-    loading, 
-    error, 
-    addTask, 
-    updateTask, 
-    deleteTask, 
-    toggleTaskCompletion 
-  } = useSupabaseTasks();
-
-  const {
-    tickets,
-    loading: ticketsLoading,
-    error: ticketsError,
-    addTicket,
-    updateTicket,
-    deleteTicket
-  } = useSupabaseTickets();
-  
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
-  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
-  const [editingTask, setEditingTask] = useState<Task | undefined>();
-  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
-  const [editingTicket, setEditingTicket] = useState<Ticket | undefined>();
-
-  const handleCreateTask = () => {
-    setEditingTask(undefined);
-    setIsTaskModalOpen(true);
-  };
-
-  const handleEditTask = (task: Task) => {
-    setEditingTask(task);
-    setIsTaskModalOpen(true);
-  };
-
-  const handleSaveTask = async (taskData: Omit<Task, 'id' | 'createdAt' | 'completedDates'>) => {
-    try {
-      if (editingTask) {
-        // Update existing task
-        await updateTask(editingTask.id, taskData);
-      } else {
-        // Create new task - Supabase generates ID, createdAt, and initializes completedDates
-        const newTask = {
-          ...taskData,
-          completedDates: [],
-        };
-        await addTask(newTask);
-      }
-      setIsTaskModalOpen(false);
-    } catch (error) {
-      logError(error, { operation: 'save-task-ui', metadata: { isEdit: !!editingTask } });
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    if (confirm(CONFIRMATION_MESSAGES.deleteTask)) {
-      try {
-        await deleteTask(taskId);
-      } catch (error) {
-        logError(error, { operation: 'delete-task-ui', taskId });
-      }
-    }
-  };
-
-  const handleToggleTask = async (taskId: string, date: string) => {
-    try {
-      await toggleTaskCompletion(taskId, date);
-    } catch (error) {
-      logError(error, { operation: 'toggle-task-ui', taskId, metadata: { date } });
-    }
-  };
-
-  // Ticket handlers
-  const handleCreateTicket = () => {
-    setEditingTicket(undefined);
-    setIsTicketModalOpen(true);
-  };
-
-  const handleEditTicket = (ticket: Ticket) => {
-    setEditingTicket(ticket);
-    setIsTicketModalOpen(true);
-  };
-
-  const handleSaveTicket = async (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => {
-    try {
-      if (editingTicket) {
-        // Update existing ticket
-        await updateTicket(editingTicket.id, ticketData);
-      } else {
-        // Create new ticket - Supabase generates ID, createdAt, and updatedAt
-        await addTicket(ticketData);
-      }
-      setIsTicketModalOpen(false);
-    } catch (error) {
-      logError(error, { operation: 'save-ticket-ui', metadata: { isEdit: !!editingTicket } });
-    }
-  };
-
-  const handleDeleteTicket = async (ticketId: string) => {
-    if (confirm(CONFIRMATION_MESSAGES.deleteTicket)) {
-      try {
-        await deleteTicket(ticketId);
-      } catch (error) {
-        logError(error, { operation: 'delete-ticket-ui', ticketId });
-      }
-    }
-  };
+  
+  // UI hooks que encapsulan toda la lógica CRUD
+  const tasksUI = useTasksUI();
+  const ticketsUI = useTicketsUI();
 
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard tasks={tasks} tickets={tickets} onToggleTask={handleToggleTask} />;
+        return (
+          <Dashboard 
+            tasks={tasksUI.tasks} 
+            tickets={ticketsUI.tickets} 
+            onToggleTask={tasksUI.handleToggleTask} 
+          />
+        );
       case 'calendar':
         return (
           <CalendarView
-            tasks={tasks}
-            onToggleTask={handleToggleTask}
-            onCreateTask={handleCreateTask}
+            tasks={tasksUI.tasks}
+            onToggleTask={tasksUI.handleToggleTask}
+            onCreateTask={tasksUI.handleCreateTask}
           />
         );
       case 'tasks':
         return (
           <TasksList
-            tasks={tasks}
-            onCreateTask={handleCreateTask}
-            onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteTask}
-            onToggleTask={handleToggleTask}
+            tasks={tasksUI.tasks}
+            onCreateTask={tasksUI.handleCreateTask}
+            onEditTask={tasksUI.handleEditTask}
+            onDeleteTask={tasksUI.handleDeleteTask}
+            onToggleTask={tasksUI.handleToggleTask}
           />
         );
       case 'tickets':
         return (
           <TicketsList
-            tickets={tickets}
-            onCreateTicket={handleCreateTicket}
-            onEditTicket={handleEditTicket}
-            onDeleteTicket={handleDeleteTicket}
+            tickets={ticketsUI.tickets}
+            onCreateTicket={ticketsUI.handleCreateTicket}
+            onEditTicket={ticketsUI.handleEditTicket}
+            onDeleteTicket={ticketsUI.handleDeleteTicket}
           />
         );
       default:
-        return <Dashboard tasks={tasks} tickets={tickets} onToggleTask={handleToggleTask} />;
+        return (
+          <Dashboard 
+            tasks={tasksUI.tasks} 
+            tickets={ticketsUI.tickets} 
+            onToggleTask={tasksUI.handleToggleTask} 
+          />
+        );
     }
   };
 
-  if (loading || ticketsLoading) {
+  // Loading state
+  if (tasksUI.loading || ticketsUI.loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -168,7 +87,8 @@ function App() {
     );
   }
 
-  if (error || ticketsError) {
+  // Error state
+  if (tasksUI.error || ticketsUI.error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -178,7 +98,7 @@ function App() {
             </svg>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error de conexión</h2>
-          <p className="text-gray-600 mb-4">{error || ticketsError}</p>
+          <p className="text-gray-600 mb-4">{tasksUI.error || ticketsUI.error}</p>
           <button 
             onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -190,6 +110,7 @@ function App() {
     );
   }
 
+  // Main app layout
   return (
     <div className="min-h-screen bg-gray-50">
       <Header currentView={currentView} onViewChange={setCurrentView} />
@@ -198,20 +119,21 @@ function App() {
         {renderCurrentView()}
       </main>
 
+      {/* Modals */}
       <TaskModal
-        isOpen={isTaskModalOpen}
-        onClose={() => setIsTaskModalOpen(false)}
-        onSave={handleSaveTask}
-        editingTask={editingTask}
-        existingTasks={tasks}
+        isOpen={tasksUI.isTaskModalOpen}
+        onClose={tasksUI.closeTaskModal}
+        onSave={tasksUI.handleSaveTask}
+        editingTask={tasksUI.editingTask}
+        existingTasks={tasksUI.tasks}
       />
 
       <TicketModal
-        isOpen={isTicketModalOpen}
-        onClose={() => setIsTicketModalOpen(false)}
-        onSave={handleSaveTicket}
-        editingTicket={editingTicket}
-        existingTickets={tickets}
+        isOpen={ticketsUI.isTicketModalOpen}
+        onClose={ticketsUI.closeTicketModal}
+        onSave={ticketsUI.handleSaveTicket}
+        editingTicket={ticketsUI.editingTicket}
+        existingTickets={ticketsUI.tickets}
       />
     </div>
   );
