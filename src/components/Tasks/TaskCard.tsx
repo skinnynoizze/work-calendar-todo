@@ -33,7 +33,7 @@ export default function TaskCard({ task, onEdit, onDelete, onToggle }: TaskCardP
               {task.title}
               {task.backupRotation?.enabled && todayInstance && (
                 <span className="ml-2 text-sm text-orange-600 font-normal">
-                  - {calculateTapeForDate(task, todayString)}
+                  - {calculateTapeForDate(task, today)}
                 </span>
               )}
             </h3>

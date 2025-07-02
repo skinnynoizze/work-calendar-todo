@@ -290,9 +290,13 @@ export const calculateTapeForDate = (task: Task, targetDate: Date): string => {
       return task.backupRotation.nextFridayTape; // Fallback
     }
     
+    // Normalizar fechas a medianoche usando el patrón existente del proyecto
+    const normalizedTarget = parseDate(formatDate(targetDate));
+    const normalizedReference = parseDate(task.backupRotation.referenceDate);
+    
     // Calcular cuántos viernes han pasado desde la referencia
     const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-    const weeksDiff = Math.floor((targetDate.getTime() - referenceDate.getTime()) / msPerWeek);
+    const weeksDiff = Math.floor((normalizedTarget.getTime() - normalizedReference.getTime()) / msPerWeek);
     
     // Calcular posición en la secuencia cíclica
     const sequencePosition = (referenceTapeIndex + weeksDiff) % FRIDAY_SEQUENCE.length;
