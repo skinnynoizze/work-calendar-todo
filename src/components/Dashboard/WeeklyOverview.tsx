@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TaskInstance } from '../../types';
 import { formatDate } from '../../utils/dateUtils';
-import { getTaskStyles, sortTasksByPriority, getTaskStateColor } from '../../utils/taskUtils';
+import { getTaskStyles, sortTasksByPriority, getTaskStateColor, calculateTapeForDate } from '../../utils/taskUtils';
 import { LOCALE_NAMES, UI_LIMITS } from '../../utils/constants';
 import DayTasksModal from '../Calendar/DayTasksModal';
 
@@ -107,10 +107,15 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
                         }}
                         title={task.task.title}
                       >
-                        {task.task.title.length > UI_LIMITS.TASK_TITLE_TRUNCATE 
-                          ? `${task.task.title.slice(0, UI_LIMITS.TASK_TITLE_TRUNCATE)}...`
-                          : task.task.title
-                        }
+                        {(() => {
+                          const tape = task.task.backupRotation?.enabled 
+                            ? calculateTapeForDate(task.task, date) 
+                            : '';
+                          const displayTitle = task.task.title + (tape ? ` - ${tape}` : '');
+                          return displayTitle.length > UI_LIMITS.TASK_TITLE_TRUNCATE 
+                            ? `${displayTitle.slice(0, UI_LIMITS.TASK_TITLE_TRUNCATE)}...`
+                            : displayTitle;
+                        })()}
                       </button>
                     ))}
                     {tasks.length > UI_LIMITS.WEEKLY_TASKS_PREVIEW && (

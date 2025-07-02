@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
 import { TaskInstance } from '../../types';
-import { getTaskStyles, sortTasksByPriority, getPriorityLabel, getTaskStateColor } from '../../utils/taskUtils';
+import { getTaskStyles, sortTasksByPriority, getPriorityLabel, getTaskStateColor, calculateTapeForDate } from '../../utils/taskUtils';
 import { formatDate } from '../../utils/dateUtils';
 
 interface DayTasksModalProps {
@@ -78,6 +78,11 @@ export default function DayTasksModal({
                         taskInstance.completed ? 'line-through' : ''
                       }`}>
                         {taskInstance.task.title}
+                        {taskInstance.task.backupRotation?.enabled && (
+                          <span className="ml-2 text-sm text-orange-600 font-semibold">
+                            - {calculateTapeForDate(taskInstance.task, date)}
+                          </span>
+                        )}
                       </h3>
                       
                       {taskInstance.task.description && (

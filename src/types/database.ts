@@ -21,6 +21,11 @@ export interface Database {
           completed: boolean;
           completed_dates: string[];
           color: string;
+          backup_rotation: {
+            enabled: boolean;
+            nextFridayTape: 'V1' | 'V2' | 'V3' | 'M1' | 'M2' | 'M3';
+            referenceDate: string;
+          } | null;
           created_at: string;
           updated_at: string;
         };
@@ -41,6 +46,11 @@ export interface Database {
           completed?: boolean;
           completed_dates?: string[];
           color: string;
+          backup_rotation?: {
+            enabled: boolean;
+            nextFridayTape: 'V1' | 'V2' | 'V3' | 'M1' | 'M2' | 'M3';
+            referenceDate: string;
+          } | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -61,6 +71,11 @@ export interface Database {
           completed?: boolean;
           completed_dates?: string[];
           color?: string;
+          backup_rotation?: {
+            enabled: boolean;
+            nextFridayTape: 'V1' | 'V2' | 'V3' | 'M1' | 'M2' | 'M3';
+            referenceDate: string;
+          } | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -94,6 +109,7 @@ export const taskToDbTask = (task: Task): Database['public']['Tables']['tasks'][
   completed: task.completed || false,
   completed_dates: task.completedDates || [],
   color: task.color,
+  backup_rotation: task.backupRotation || null,
 });
 
 export const dbTaskToTask = (dbTask: DbTask): Task => ({
@@ -108,5 +124,6 @@ export const dbTaskToTask = (dbTask: DbTask): Task => ({
   completed: dbTask.completed,
   completedDates: dbTask.completed_dates,
   color: dbTask.color,
+  backupRotation: dbTask.backup_rotation || undefined,
   createdAt: dbTask.created_at,
 }); 

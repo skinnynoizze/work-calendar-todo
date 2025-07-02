@@ -1,6 +1,6 @@
 import { Clock, AlertTriangle } from 'lucide-react';
 import { TaskInstancesResult } from '../../types';
-import { sortTasksByPriority, getTaskStyles } from '../../utils/taskUtils';
+import { sortTasksByPriority, getTaskStyles, calculateTapeForDate } from '../../utils/taskUtils';
 import { formatDate, getRelativeDateLabel } from '../../utils/dateUtils';
 import { UI_LIMITS } from '../../utils/constants';
 
@@ -145,7 +145,14 @@ export default function UpcomingTasks({ taskInstances, onToggleTask }: UpcomingT
                       className="w-2 h-2 rounded-full"
                       style={{ backgroundColor: getTaskStyles(task.task).borderColor }}
                     />
-                    <p className="text-sm font-medium text-orange-900">{task.task.title}</p>
+                    <p className="text-sm font-medium text-orange-900">
+                      {task.task.title}
+                      {task.task.backupRotation?.enabled && (
+                        <span className="ml-2 text-xs text-orange-600 font-semibold">
+                          - {calculateTapeForDate(task.task, taskDate)}
+                        </span>
+                      )}
+                    </p>
                   </div>
                   <div className="flex items-center space-x-2 mt-1">
                     <p className="text-xs text-orange-600">{dateLabel}</p>

@@ -16,6 +16,11 @@ export interface Task {
   completedDates: string[]; // Array of completed dates (ISO strings)
   createdAt: string;
   color: string;
+  backupRotation?: {
+    enabled: boolean;
+    nextFridayTape: 'V1' | 'V2' | 'V3' | 'M1' | 'M2' | 'M3';
+    referenceDate: string; // Fecha del "próximo viernes" para calcular desde ahí
+  };
 }
 
 export interface TaskInstance {

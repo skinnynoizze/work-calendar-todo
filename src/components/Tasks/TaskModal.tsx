@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { Task } from '../../types';
 import { formatDate } from '../../utils/dateUtils';
-import { getUniqueCategories } from '../../utils/taskUtils';
+import { getUniqueCategories, getNextFriday } from '../../utils/taskUtils';
 import { LOCALE_NAMES } from '../../utils/constants';
 
 interface TaskModalProps {
@@ -28,6 +28,11 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
     startDate: string;
     endDate: string;
     color: string;
+    backupRotation: {
+      enabled: boolean;
+      nextFridayTape: 'V1' | 'V2' | 'V3' | 'M1' | 'M2' | 'M3';
+      referenceDate: string;
+    };
   }>({
     title: '',
     description: '',
@@ -42,6 +47,11 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
     startDate: formatDate(new Date()),
     endDate: '',
     color: '#3B82F6',
+    backupRotation: {
+      enabled: false,
+      nextFridayTape: 'V1',
+      referenceDate: formatDate(getNextFriday()),
+    },
   });
 
   // Estados para el selector de categorías
@@ -70,6 +80,11 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
         startDate: editingTask.startDate,
         endDate: editingTask.endDate || '',
         color: editingTask.color,
+        backupRotation: editingTask.backupRotation || {
+          enabled: false,
+          nextFridayTape: 'V1',
+          referenceDate: formatDate(getNextFriday()),
+        },
       });
       setCategorySearchTerm(editingTask.category);
     } else {
@@ -110,10 +125,15 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({
+    
+    const taskData = {
       ...formData,
       completed: false,
-    });
+      // Solo incluir backupRotation si está habilitado
+      backupRotation: formData.backupRotation.enabled ? formData.backupRotation : undefined,
+    };
+    
+    onSave(taskData);
     onClose();
   };
 
@@ -320,6 +340,65 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
               <option value="high">Alta</option>
             </select>
           </div>
+
+          {/* Configuración de Backup Rotation - Solo visible para categoría "Backups" */}
+          {formData.category.toLowerCase() === 'backups' && (
+            <div className="border border-orange-200 rounded-lg p-4 bg-orange-50">
+              <div className="flex items-center space-x-2 mb-3">
+                <input
+                  type="checkbox"
+                  id="backupRotationEnabled"
+                  checked={formData.backupRotation.enabled}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    backupRotation: {
+                      ...prev.backupRotation,
+                      enabled: e.target.checked,
+                      referenceDate: e.target.checked ? formatDate(getNextFriday()) : prev.backupRotation.referenceDate,
+                    }
+                  }))}
+                  className="rounded text-orange-600 focus:ring-orange-500"
+                />
+                <label htmlFor="backupRotationEnabled" className="text-sm font-medium text-orange-900">
+                  Es tarea de backup con rotación de cintas
+                </label>
+              </div>
+
+              {formData.backupRotation.enabled && (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-orange-700 mb-1">
+                      El próximo viernes ({new Date(formData.backupRotation.referenceDate).toLocaleDateString()}) toca:
+                    </label>
+                    <select
+                      value={formData.backupRotation.nextFridayTape}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        backupRotation: {
+                          ...prev.backupRotation,
+                          nextFridayTape: e.target.value as 'V1' | 'V2' | 'V3' | 'M1' | 'M2' | 'M3',
+                        }
+                      }))}
+                      className="w-full px-3 py-2 border border-orange-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                    >
+                      <option value="V1">V1 (Viernes semanal 1)</option>
+                      <option value="V2">V2 (Viernes semanal 2)</option>
+                      <option value="V3">V3 (Viernes semanal 3)</option>
+                      <option value="M1">M1 (Cinta mensual 1)</option>
+                      <option value="M2">M2 (Cinta mensual 2)</option>
+                      <option value="M3">M3 (Cinta mensual 3)</option>
+                    </select>
+                  </div>
+                  
+                  <div className="text-xs text-orange-600 bg-orange-100 p-2 rounded">
+                    <strong>Rotación automática:</strong><br/>
+                    • L-J: Cintas diarias (L, M, X, J)<br/>
+                    • Viernes: Secuencia V1 → V2 → V3 → M1 → V1 → V2 → V3 → M2 (continúa...)
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -1,6 +1,6 @@
 import { Edit2, Trash2, Calendar, Repeat, AlertCircle } from 'lucide-react';
 import { Task } from '../../types';
-import { getTaskStyles, generateTaskInstances, getPriorityLabel, getRecurrenceLabel } from '../../utils/taskUtils';
+import { getTaskStyles, generateTaskInstances, getPriorityLabel, getRecurrenceLabel, calculateTapeForDate } from '../../utils/taskUtils';
 import { formatDate } from '../../utils/dateUtils';
 
 interface TaskCardProps {
@@ -29,7 +29,14 @@ export default function TaskCard({ task, onEdit, onDelete, onToggle }: TaskCardP
               className="w-3 h-3 rounded-full"
               style={getTaskStyles(task)}
             />
-            <h3 className="text-lg font-semibold text-gray-900">{task.title}</h3>
+            <h3 className="text-lg font-semibold text-gray-900">
+              {task.title}
+              {task.backupRotation?.enabled && todayInstance && (
+                <span className="ml-2 text-sm text-orange-600 font-normal">
+                  - {calculateTapeForDate(task, todayString)}
+                </span>
+              )}
+            </h3>
             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
               {task.category}
             </span>

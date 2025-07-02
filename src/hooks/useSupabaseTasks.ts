@@ -130,6 +130,7 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
       if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
       if (updates.completedDates !== undefined) dbUpdates.completed_dates = updates.completedDates;
       if (updates.color !== undefined) dbUpdates.color = updates.color;
+      if (updates.backupRotation !== undefined) dbUpdates.backup_rotation = updates.backupRotation || null;
       
       dbUpdates.updated_at = new Date().toISOString();
 

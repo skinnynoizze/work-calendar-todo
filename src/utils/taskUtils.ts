@@ -255,6 +255,68 @@ export const formatCompletionRate = (rate: number): string => {
   return `${Math.round(rate)}%`;
 };
 
+// ===== FUNCIONES PARA ROTACIÓN DE CINTAS DE BACKUP =====
+
+const DAILY_TAPES: Record<number, string> = {
+  1: 'L', // Lunes
+  2: 'M', // Martes
+  3: 'X', // Miércoles
+  4: 'J', // Jueves
+};
+
+const FRIDAY_SEQUENCE = ['V1', 'V2', 'V3', 'M1', 'V1', 'V2', 'V3', 'M2', 'V1', 'V2', 'V3', 'M3'] as const;
+
+/**
+ * Calcula qué cinta de backup corresponde a una fecha específica
+ */
+export const calculateTapeForDate = (task: Task, targetDate: Date): string => {
+  if (!task.backupRotation?.enabled) {
+    return '';
+  }
+
+  const dayOfWeek = targetDate.getDay();
+  
+  // Para días L-J, siempre es la cinta fija
+  if (dayOfWeek >= 1 && dayOfWeek <= 4) {
+    return DAILY_TAPES[dayOfWeek];
+  }
+  
+  // Para viernes (day 5), calcular posición en secuencia
+  if (dayOfWeek === 5) {
+    const referenceDate = new Date(task.backupRotation.referenceDate);
+    const referenceTapeIndex = FRIDAY_SEQUENCE.indexOf(task.backupRotation.nextFridayTape);
+    
+    if (referenceTapeIndex === -1) {
+      return task.backupRotation.nextFridayTape; // Fallback
+    }
+    
+    // Calcular cuántos viernes han pasado desde la referencia
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    const weeksDiff = Math.floor((targetDate.getTime() - referenceDate.getTime()) / msPerWeek);
+    
+    // Calcular posición en la secuencia cíclica
+    const sequencePosition = (referenceTapeIndex + weeksDiff) % FRIDAY_SEQUENCE.length;
+    return FRIDAY_SEQUENCE[sequencePosition];
+  }
+  
+  return ''; // Sábado y domingo no tienen backup
+};
+
+/**
+ * Obtiene el próximo viernes desde una fecha dada
+ */
+export const getNextFriday = (fromDate: Date = new Date()): Date => {
+  const date = new Date(fromDate);
+  const daysUntilFriday = (5 - date.getDay() + 7) % 7;
+  if (daysUntilFriday === 0 && date.getDay() === 5) {
+    // Si es viernes, el próximo viernes es en 7 días
+    date.setDate(date.getDate() + 7);
+  } else {
+    date.setDate(date.getDate() + daysUntilFriday);
+  }
+  return date;
+};
+
 // Función para obtener etiqueta de recurrencia completa
 export const getRecurrenceLabel = (recurrence: Task['recurrence']): string => {
   if (recurrence.type === 'none') return RECURRENCE_LABELS.none;

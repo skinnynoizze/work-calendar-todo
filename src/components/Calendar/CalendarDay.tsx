@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { TaskInstance } from '../../types';
-import { getTaskStyles, sortTasksByPriority, getTaskStateColor } from '../../utils/taskUtils';
+import { getTaskStyles, sortTasksByPriority, getTaskStateColor, calculateTapeForDate } from '../../utils/taskUtils';
 import { formatDate } from '../../utils/dateUtils';
 import { UI_LIMITS } from '../../utils/constants';
 import DayTasksModal from './DayTasksModal';
@@ -69,6 +69,11 @@ export default function CalendarDay({
           >
             <div className="truncate">
               {taskInstance.task.title}
+              {taskInstance.task.backupRotation?.enabled && (
+                <span className="ml-1 text-xs opacity-90">
+                  - {calculateTapeForDate(taskInstance.task, date)}
+                </span>
+              )}
             </div>
           </div>
         ))}
