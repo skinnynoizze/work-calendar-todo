@@ -41,6 +41,14 @@ export const PRIORITY_COLORS = {
   default: '#6B7280', // gray-500 (fallback para prioridades inválidas)
 } as const;
 
+// Clases CSS para badges de prioridad de tasks (consistentes con PRIORITY_COLORS)
+export const PRIORITY_BADGE_CLASSES = {
+  high: 'bg-red-100 text-red-800 border-red-200',
+  medium: 'bg-amber-100 text-amber-800 border-amber-200',
+  low: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  default: 'bg-gray-100 text-gray-800 border-gray-200',
+} as const;
+
 // Etiquetas de prioridad
 export const PRIORITY_LABELS = {
   high: 'Alta',
@@ -96,6 +104,25 @@ export const TICKET_PRIORITY_COLORS = {
   medium: '#F59E0B',  // Ámbar (mismo que task.medium)
   low: '#10B981',     // Verde (mismo que task.low)
   default: '#6B7280', // Gris (fallback para prioridades inválidas)
+} as const;
+
+// Clases CSS para badges de prioridad de tickets (consistentes con TICKET_PRIORITY_COLORS)
+export const TICKET_PRIORITY_BADGE_CLASSES = {
+  urgent: 'bg-red-100 text-red-800 border-red-200',
+  high: 'bg-orange-100 text-orange-800 border-orange-200',
+  medium: 'bg-amber-100 text-amber-800 border-amber-200',
+  low: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+  default: 'bg-gray-100 text-gray-800 border-gray-200',
+} as const;
+
+// Clases CSS para badges de estado de tickets
+export const TICKET_STATUS_BADGE_CLASSES = {
+  open: 'bg-blue-100 text-blue-800 border-blue-200',
+  'in-progress': 'bg-purple-100 text-purple-800 border-purple-200',
+  pending: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  resolved: 'bg-green-100 text-green-800 border-green-200',
+  closed: 'bg-gray-100 text-gray-800 border-gray-200',
+  default: 'bg-gray-100 text-gray-800 border-gray-200',
 } as const;
 
 // Categorías predefinidas de tickets (sistema híbrido: predefinidas + dinámicas como tasks)

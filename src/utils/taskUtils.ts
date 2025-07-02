@@ -1,6 +1,6 @@
 import { Task, TaskInstance } from '../types';
 import { formatDate, parseDate, addDays } from './dateUtils';
-import { TIME_CONSTANTS, PRIORITY_ORDER, PRIORITY_COLORS, PRIORITY_LABELS, TASK_STATE_COLORS, RECURRENCE_LABELS, LOCALE_NAMES } from './constants';
+import { TIME_CONSTANTS, PRIORITY_ORDER, PRIORITY_COLORS, PRIORITY_LABELS, PRIORITY_BADGE_CLASSES, TASK_STATE_COLORS, RECURRENCE_LABELS, LOCALE_NAMES } from './constants';
 import { getUniqueCategories as getUniqueCategoriesGeneric } from './categoryUtils';
 
 export const generateTaskInstances = (
@@ -473,3 +473,8 @@ function generateMonthlyInstances(
     currentMonth.setMonth(currentMonth.getMonth() + interval);
   }
 }
+
+// Centralized color classes for task priority badges (using constants.ts)
+export const getTaskPriorityColorClasses = (priority: string): string => {
+  return PRIORITY_BADGE_CLASSES[priority as keyof typeof PRIORITY_BADGE_CLASSES] || PRIORITY_BADGE_CLASSES.default;
+};

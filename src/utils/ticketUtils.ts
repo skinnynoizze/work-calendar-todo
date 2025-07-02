@@ -1,5 +1,5 @@
 import { Ticket } from '../types';
-import { TICKET_PRIORITY_ORDER, TICKET_PRIORITY_COLORS } from './constants';
+import { TICKET_PRIORITY_ORDER, TICKET_PRIORITY_COLORS, TICKET_PRIORITY_BADGE_CLASSES, TICKET_STATUS_BADGE_CLASSES } from './constants';
 import { getUniqueCategories } from './categoryUtils';
 
 // Get unique categories from tickets (similar to tasks)
@@ -112,26 +112,13 @@ export const isTicketOverdue = (ticket: Ticket, slaHours: number = 24): boolean 
   return diffInHours > slaHours;
 };
 
-// Centralized color functions for consistency
+// Centralized color functions for consistency (using constants.ts)
 export const getTicketPriorityColorClasses = (priority: string): string => {
-  switch (priority) {
-    case 'urgent': return 'bg-red-100 text-red-800 border-red-200';
-    case 'high': return 'bg-orange-100 text-orange-800 border-orange-200';
-    case 'medium': return 'bg-amber-100 text-amber-800 border-amber-200';
-    case 'low': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-    default: return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
+  return TICKET_PRIORITY_BADGE_CLASSES[priority as keyof typeof TICKET_PRIORITY_BADGE_CLASSES] || TICKET_PRIORITY_BADGE_CLASSES.default;
 };
 
 export const getTicketStatusColorClasses = (status: string): string => {
-  switch (status) {
-    case 'open': return 'bg-blue-100 text-blue-800 border-blue-200';
-    case 'in-progress': return 'bg-purple-100 text-purple-800 border-purple-200';
-    case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-    case 'resolved': return 'bg-green-100 text-green-800 border-green-200';
-    case 'closed': return 'bg-gray-100 text-gray-800 border-gray-200';
-    default: return 'bg-gray-100 text-gray-800 border-gray-200';
-  }
+  return TICKET_STATUS_BADGE_CLASSES[status as keyof typeof TICKET_STATUS_BADGE_CLASSES] || TICKET_STATUS_BADGE_CLASSES.default;
 };
 
 // Get display text for status

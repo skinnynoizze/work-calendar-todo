@@ -1,6 +1,6 @@
-import { Edit2, Trash2, Calendar, Repeat, AlertCircle } from 'lucide-react';
+import { Edit2, Trash2, Calendar, Repeat } from 'lucide-react';
 import { Task } from '../../types';
-import { getTaskStyles, generateTaskInstances, getPriorityLabel, getRecurrenceLabel, calculateTapeForDate } from '../../utils/taskUtils';
+import { getTaskStyles, generateTaskInstances, getPriorityLabel, getRecurrenceLabel, calculateTapeForDate, getTaskPriorityColorClasses } from '../../utils/taskUtils';
 import { formatDate } from '../../utils/dateUtils';
 
 interface TaskCardProps {
@@ -47,10 +47,9 @@ export default function TaskCard({ task, onEdit, onDelete, onToggle }: TaskCardP
           )}
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-            <div className="flex items-center space-x-1">
-              <AlertCircle className="w-4 h-4" />
-              <span>Prioridad: {getPriorityLabel(task.priority)}</span>
-            </div>
+            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getTaskPriorityColorClasses(task.priority)}`}>
+              {getPriorityLabel(task.priority)}
+            </span>
             
             <div className="flex items-center space-x-1">
               <Repeat className="w-4 h-4" />
@@ -90,22 +89,23 @@ export default function TaskCard({ task, onEdit, onDelete, onToggle }: TaskCardP
           )}
         </div>
 
-        <div className="flex items-center space-x-2 ml-4">
-          <button
-            onClick={onEdit}
-            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-            title="Editar tarea"
-          >
-            <Edit2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={onDelete}
-            className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-            title="Eliminar tarea"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
+      </div>
+
+      <div className="flex justify-end gap-2 mt-4">
+        <button
+          onClick={onEdit}
+          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-50 text-blue-700 rounded hover:bg-blue-100 transition-colors"
+        >
+          <Edit2 className="h-4 w-4" />
+          Editar
+        </button>
+        <button
+          onClick={onDelete}
+          className="flex items-center gap-1 px-3 py-1.5 text-sm bg-red-50 text-red-700 rounded hover:bg-red-100 transition-colors"
+        >
+          <Trash2 className="h-4 w-4" />
+          Eliminar
+        </button>
       </div>
     </div>
   );
