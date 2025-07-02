@@ -1,5 +1,7 @@
 import { Calendar, CheckSquare, BarChart3 } from 'lucide-react';
 import { ViewMode } from '../../types';
+import logoCompact from '../../assets/images/cruz-roja-rectangular.jpg';
+import logoMini from '../../assets/images/solocruz.jpg';
 
 interface HeaderProps {
   currentView: ViewMode;
@@ -18,10 +20,42 @@ export default function Header({ currentView, onViewChange }: HeaderProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-              <Calendar className="w-5 h-5 text-white" />
+            {/* Logo Desktop - Rectangular completo */}
+            <div className="hidden lg:flex h-11 rounded-lg items-center justify-center overflow-hidden bg-white border border-gray-200 px-2">
+              <img 
+                src={logoCompact} 
+                alt="Cruz Roja - Centro Comunitario de Sangre y Tejidos de Asturias" 
+                className="h-full w-auto object-contain"
+              />
             </div>
-            <h1 className="text-xl font-bold text-gray-900">Work Organizer</h1>
+            
+            {/* Logo Tablet & Mobile - Solo cruz */}
+            <div className="flex lg:hidden h-10 w-10 rounded-lg items-center justify-center overflow-hidden bg-white border border-gray-200">
+              <img 
+                src={logoMini} 
+                alt="Cruz Roja" 
+                className="h-full w-full object-contain"
+              />
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              {/* Texto Desktop */}
+              <div className="hidden lg:block">
+                <h1 className="text-lg font-bold text-gray-900">Organizador CCSTA</h1>
+                <p className="text-xs text-gray-600">Sistema de tareas para informáticos</p>
+              </div>
+              
+              {/* Texto Tablet */}
+              <div className="hidden sm:block lg:hidden">
+                <h1 className="text-base font-bold text-gray-900">Organizador CCSTA</h1>
+                <p className="text-xs text-gray-600">Sistema interno</p>
+              </div>
+              
+              {/* Texto Mobile */}
+              <div className="block sm:hidden">
+                <h1 className="text-sm font-bold text-gray-900">Organizador CCSTA</h1>
+              </div>
+            </div>
           </div>
           
           <nav className="flex space-x-1">

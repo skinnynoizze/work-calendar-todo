@@ -5,6 +5,7 @@ import { getMonthDays, formatDate } from '../../utils/dateUtils';
 import { useTaskInstancesForCalendar } from '../../hooks/useTaskInstances';
 import { LOCALE_NAMES } from '../../utils/constants';
 import CalendarDay from './CalendarDay';
+import DatePicker from './DatePicker';
 
 interface CalendarViewProps {
   tasks: Task[];
@@ -35,11 +36,6 @@ export default function CalendarView({ tasks, onToggleTask, onCreateTask }: Cale
     });
   };
 
-  const monthNames = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-  ];
-
   const { dayNames } = LOCALE_NAMES;
 
   return (
@@ -47,19 +43,22 @@ export default function CalendarView({ tasks, onToggleTask, onCreateTask }: Cale
       {/* Calendar Header */}
       <div className="flex items-center justify-between p-6 border-b border-gray-200">
         <div className="flex items-center space-x-4">
-          <h2 className="text-2xl font-bold text-gray-900">
-            {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
-          </h2>
+          <DatePicker 
+            currentDate={currentDate}
+            onDateChange={setCurrentDate}
+          />
           <div className="flex items-center space-x-1">
             <button
               onClick={() => navigateMonth('prev')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Mes anterior"
             >
               <ChevronLeft className="w-5 h-5 text-gray-600" />
             </button>
             <button
               onClick={() => navigateMonth('next')}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              title="Mes siguiente"
             >
               <ChevronRight className="w-5 h-5 text-gray-600" />
             </button>
