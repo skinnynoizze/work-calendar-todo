@@ -189,35 +189,31 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
     }
   }, [scheduleLocalUpdateReset]); // Dependencia necesaria para el helper
 
-  // Toggle task completion for a specific date with optimistic updates
+  // Toggle task completion for a specific date (optimistic update + DB sync)
   const toggleTaskCompletion = useCallback(async (id: string, date: string) => {
     try {
       setError(null);
       
-      // Optimistic update usando functional update para evitar stale closure
-      let newCompletedDates: string[] = [];
-      setTasks(prev => {
-        const task = prev.find(t => t.id === id);
-        if (!task) {
-          throw new Error('Task not found');
-        }
+      // Encontrar la tarea actual
+      const task = tasks.find(t => t.id === id);
+      if (!task) {
+        throw new Error('Task not found');
+      }
 
-        const isCompleted = task.completedDates.includes(date);
-        newCompletedDates = isCompleted
-          ? task.completedDates.filter(d => d !== date)
-          : [...task.completedDates, date];
+      // Calcular nuevo estado de completed dates
+      const isCompleted = task.completedDates.includes(date);
+      const newCompletedDates = isCompleted
+        ? task.completedDates.filter(d => d !== date)
+        : [...task.completedDates, date];
 
-        return prev.map(t => 
-          t.id === id 
-            ? { ...t, completedDates: newCompletedDates }
-            : t
-        );
-      });
+      // Optimistic update: Actualizar SOLO esta tarea específica en el estado local
+      setTasks(prev => prev.map(t => 
+        t.id === id 
+          ? { ...t, completedDates: newCompletedDates }
+          : t
+      ));
 
-      // Marcar como actualización local para evitar doble refresh
-      setIsLocalUpdate(true);
-
-      // Actualizar en la base de datos en background
+      // Actualizar en la base de datos en paralelo
       const dbUpdates: Partial<Database['public']['Tables']['tasks']['Update']> = {
         completed_dates: newCompletedDates,
         updated_at: new Date().toISOString()
@@ -229,19 +225,22 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
         .eq('id', id);
 
       if (updateError) {
-        // Si hay error, refrescar desde la base de datos para asegurar consistencia
-        await refreshTasks();
+        // Si hay error, revertir SOLO esta tarea específica
+        setTasks(prev => prev.map(t => 
+          t.id === id 
+            ? { ...t, completedDates: task.completedDates } // Revertir a estado original
+            : t
+        ));
         throw updateError;
       }
 
-      // Resetear flag después de un breve delay
-      scheduleLocalUpdateReset();
+      // NO hacer refreshTasks() - el optimistic update ya es suficiente y correcto
     } catch (err) {
       logError(err, { operation: 'toggle-task-completion', taskId: id, metadata: { date } });
       setError(createErrorMessage('actualizar estado de tarea', err));
       throw err;
     }
-  }, [scheduleLocalUpdateReset, refreshTasks]); // Dependencias necesarias
+  }, [tasks]); // Dependencias necesarias
 
   // Load tasks on mount
   useEffect(() => {
