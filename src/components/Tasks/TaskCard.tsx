@@ -24,12 +24,8 @@ export default function TaskCard({ task, onEdit, onDelete, onToggle }: TaskCardP
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="flex items-center space-x-2 mb-2">
-            <div
-              className="w-3 h-3 rounded-full"
-              style={getTaskStyles(task)}
-            />
-            <h3 className="text-lg font-semibold text-gray-900">
+          <div className="flex items-start justify-between gap-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
               {task.title}
               {task.backupRotation?.enabled && todayInstance && (
                 <span className="ml-2 text-sm text-orange-600 font-normal">
@@ -37,9 +33,21 @@ export default function TaskCard({ task, onEdit, onDelete, onToggle }: TaskCardP
                 </span>
               )}
             </h3>
-            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              {task.category}
-            </span>
+            <div className="flex gap-2">
+              <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getTaskPriorityColorClasses(task.priority)}`}>
+                {getPriorityLabel(task.priority)}
+              </span>
+              <span 
+                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border"
+                style={{
+                  backgroundColor: task.color + '20', // 20% opacity
+                  borderColor: task.color,
+                  color: task.color
+                }}
+              >
+                {task.category}
+              </span>
+            </div>
           </div>
 
           {task.description && (
@@ -47,10 +55,6 @@ export default function TaskCard({ task, onEdit, onDelete, onToggle }: TaskCardP
           )}
 
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
-            <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getTaskPriorityColorClasses(task.priority)}`}>
-              {getPriorityLabel(task.priority)}
-            </span>
-            
             <div className="flex items-center space-x-1">
               <Repeat className="w-4 h-4" />
               <span>{getRecurrenceLabel(task.recurrence)}</span>
