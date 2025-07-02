@@ -1,48 +1,57 @@
-import { CheckCircle, Clock, Target, TrendingUp } from 'lucide-react';
-import { formatCompletionRate } from '../../utils/taskUtils';
+import { CheckCircle, Target, Headphones, AlertTriangle } from 'lucide-react';
 
 interface StatsCardsProps {
-  stats: {
+  taskStats: {
     total: number;
     completed: number;
     pending: number;
     completionRate: number;
   };
+  ticketStats: {
+    total: number;
+    activeTickets: number;
+    byPriority: {
+      urgent: number;
+      high: number;
+      medium: number;
+      low: number;
+    };
+  };
 }
 
-export default function StatsCards({ stats }: StatsCardsProps) {
+export default function StatsCards({ taskStats, ticketStats }: StatsCardsProps) {
   const cards = [
     {
       title: 'Tareas Hoy',
-      value: stats.total,
+      value: taskStats.total,
       icon: Target,
       color: 'blue',
       bgColor: 'bg-blue-50',
       textColor: 'text-blue-600',
     },
     {
-      title: 'Completadas',
-      value: stats.completed,
+      title: 'Tareas Completadas',
+      value: taskStats.completed,
       icon: CheckCircle,
       color: 'green',
       bgColor: 'bg-green-50',
       textColor: 'text-green-600',
     },
     {
-      title: 'Pendientes',
-      value: stats.pending,
-      icon: Clock,
-      color: 'orange',
-      bgColor: 'bg-orange-50',
-      textColor: 'text-orange-600',
+      title: 'Tickets Activos',
+      value: ticketStats.activeTickets,
+      icon: Headphones,
+      color: 'indigo',
+      bgColor: 'bg-indigo-50',
+      textColor: 'text-indigo-600',
     },
     {
-      title: 'Tasa de Completado',
-      value: formatCompletionRate(stats.completionRate),
-      icon: TrendingUp,
-      color: 'purple',
-      bgColor: 'bg-purple-50',
-      textColor: 'text-purple-600',
+      title: 'Tickets Urgentes',
+      value: ticketStats.byPriority.urgent,
+      icon: AlertTriangle,
+      color: 'red',
+      bgColor: 'bg-red-50',
+      textColor: 'text-red-600',
     },
   ];
 

@@ -1,4 +1,4 @@
-import { Calendar, CheckSquare, BarChart3 } from 'lucide-react';
+import { Calendar, CheckSquare, BarChart3, Headphones } from 'lucide-react';
 import { ViewMode } from '../../types';
 import logoCompact from '../../assets/images/cruz-roja-rectangular.jpg';
 import logoMini from '../../assets/images/solocruz.jpg';
@@ -13,6 +13,7 @@ export default function Header({ currentView, onViewChange }: HeaderProps) {
     { id: 'dashboard' as ViewMode, label: 'Dashboard', icon: BarChart3 },
     { id: 'calendar' as ViewMode, label: 'Calendario', icon: Calendar },
     { id: 'tasks' as ViewMode, label: 'Tareas', icon: CheckSquare },
+    { id: 'tickets' as ViewMode, label: 'Tickets', icon: Headphones },
   ];
 
   return (

@@ -3,6 +3,7 @@ export interface ErrorLogContext {
   operation: string;
   userId?: string;
   taskId?: string;
+  ticketId?: string;
   metadata?: Record<string, unknown>;
 }
 

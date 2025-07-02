@@ -37,4 +37,24 @@ export interface TaskInstancesResult {
   getForDateRange: (start: Date, end: Date) => TaskInstance[];
 }
 
-export type ViewMode = 'calendar' | 'tasks' | 'dashboard';
+export type ViewMode = 'calendar' | 'tasks' | 'dashboard' | 'tickets';
+
+// Ticket system types
+export interface Ticket {
+  id: string;
+  title: string;
+  description: string;
+  reporter: string; // Usuario que reporta
+  phone: string; // Ext/Tlf  
+  reportedAt: string; // Fecha notificación (ISO string)
+  notes?: string;
+  resolution?: string;
+  resolvedAt?: string; // Fecha de resolución (ISO string)
+  category: string; // Texto libre como las tareas
+  status: 'open' | 'in-progress' | 'pending' | 'resolved' | 'closed';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  assignedTo?: string; // Técnico asignado
+  createdAt: string;
+  updatedAt: string;
+  color: string; // Para categorías como en tareas
+}

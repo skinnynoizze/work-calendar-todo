@@ -8,7 +8,7 @@ interface UseSupabaseTasksReturn {
   tasks: Task[];
   loading: boolean;
   error: string | null;
-  addTask: (task: Task) => Promise<void>;
+  addTask: (task: Partial<Task>) => Promise<void>;
   updateTask: (id: string, updates: Partial<Task>) => Promise<void>;
   deleteTask: (id: string) => Promise<void>;
   toggleTaskCompletion: (id: string, date: string) => Promise<void>;
@@ -70,7 +70,7 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
   }, []);
 
   // Add a new task
-  const addTask = useCallback(async (task: Task) => {
+  const addTask = useCallback(async (task: Partial<Task>) => {
     try {
       setError(null);
       setIsLocalUpdate(true);

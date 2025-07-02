@@ -1,6 +1,7 @@
 import { Task, TaskInstance } from '../types';
 import { formatDate, parseDate, addDays } from './dateUtils';
 import { TIME_CONSTANTS, PRIORITY_ORDER, PRIORITY_COLORS, PRIORITY_LABELS, TASK_STATE_COLORS, RECURRENCE_LABELS, LOCALE_NAMES } from './constants';
+import { getUniqueCategories as getUniqueCategoriesGeneric } from './categoryUtils';
 
 export const generateTaskInstances = (
   task: Task,
@@ -229,15 +230,7 @@ export const sortPlainTasksByPriority = (tasks: Task[]): Task[] => {
 
 // Función para obtener categorías únicas con sus colores
 export const getUniqueCategories = (tasks: Task[]): Array<{ name: string; color: string }> => {
-  const categoryMap = new Map<string, string>();
-  
-  tasks.forEach(task => {
-    if (task.category && !categoryMap.has(task.category)) {
-      categoryMap.set(task.category, task.color || '#3B82F6');
-    }
-  });
-  
-  return Array.from(categoryMap.entries()).map(([name, color]) => ({ name, color }));
+  return getUniqueCategoriesGeneric(tasks);
 };
 
 // Función para obtener etiqueta de prioridad legible
@@ -283,7 +276,6 @@ export const calculateTapeForDate = (task: Task, targetDate: Date): string => {
   
   // Para viernes (day 5), calcular posición en secuencia
   if (dayOfWeek === 5) {
-    const referenceDate = new Date(task.backupRotation.referenceDate);
     const referenceTapeIndex = FRIDAY_SEQUENCE.indexOf(task.backupRotation.nextFridayTape);
     
     if (referenceTapeIndex === -1) {

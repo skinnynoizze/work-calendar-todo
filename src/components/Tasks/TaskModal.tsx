@@ -61,10 +61,12 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
   // Obtener categorías únicas existentes
   const existingCategories = getUniqueCategories(existingTasks);
   
-  // Filtrar categorías basado en el término de búsqueda
-  const filteredCategories = existingCategories.filter(cat => 
-    cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase())
-  );
+  // Filtrar categorías: si no hay término de búsqueda, mostrar todas
+  const filteredCategories = categorySearchTerm.trim() === ''
+    ? existingCategories
+    : existingCategories.filter(cat => 
+        cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase())
+      );
 
   useEffect(() => {
     if (editingTask) {
@@ -102,6 +104,11 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
         startDate: formatDate(new Date()),
         endDate: '',
         color: '#3B82F6',
+        backupRotation: {
+          enabled: false,
+          nextFridayTape: 'V1',
+          referenceDate: formatDate(getNextFriday()),
+        },
       });
       setCategorySearchTerm('');
     }
@@ -213,7 +220,7 @@ export default function TaskModal({ isOpen, onClose, onSave, editingTask, existi
   const handleCategoryInputChange = (value: string) => {
     setFormData(prev => ({ ...prev, category: value }));
     setCategorySearchTerm(value);
-    setShowCategoryDropdown(value.length > 0);
+    // Mantener dropdown abierto una vez que se abre (solo se cierra al seleccionar o clic fuera)
   };
 
   if (!isOpen) return null;

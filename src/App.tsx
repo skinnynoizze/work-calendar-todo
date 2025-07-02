@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { Task, ViewMode } from './types';
+import { Task, Ticket, ViewMode } from './types';
 import { useSupabaseTasks } from './hooks/useSupabaseTasks';
+import { useSupabaseTickets } from './hooks/useSupabaseTickets';
 import Header from './components/Layout/Header';
 import Dashboard from './components/Dashboard/Dashboard';
 import CalendarView from './components/Calendar/CalendarView';
 import TasksList from './components/Tasks/TasksList';
 import TaskModal from './components/Tasks/TaskModal';
+import TicketsList from './components/Tickets/TicketsList';
+import TicketModal from './components/Tickets/TicketModal';
 import { logError } from './utils/errorUtils';
+import { CONFIRMATION_MESSAGES } from './utils/constants';
 
 function App() {
   const { 
@@ -18,10 +22,21 @@ function App() {
     deleteTask, 
     toggleTaskCompletion 
   } = useSupabaseTasks();
+
+  const {
+    tickets,
+    loading: ticketsLoading,
+    error: ticketsError,
+    addTicket,
+    updateTicket,
+    deleteTicket
+  } = useSupabaseTickets();
   
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>();
+  const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [editingTicket, setEditingTicket] = useState<Ticket | undefined>();
 
   const handleCreateTask = () => {
     setEditingTask(undefined);
@@ -39,11 +54,9 @@ function App() {
         // Update existing task
         await updateTask(editingTask.id, taskData);
       } else {
-        // Create new task - Supabase will generate the ID automatically
+        // Create new task - Supabase generates ID, createdAt, and initializes completedDates
         const newTask = {
           ...taskData,
-          id: crypto.randomUUID(), // Generate client-side UUID
-          createdAt: new Date().toISOString(),
           completedDates: [],
         };
         await addTask(newTask);
@@ -55,7 +68,7 @@ function App() {
   };
 
   const handleDeleteTask = async (taskId: string) => {
-    if (confirm('¿Estás seguro de que quieres eliminar esta tarea?')) {
+    if (confirm(CONFIRMATION_MESSAGES.deleteTask)) {
       try {
         await deleteTask(taskId);
       } catch (error) {
@@ -72,10 +85,46 @@ function App() {
     }
   };
 
+  // Ticket handlers
+  const handleCreateTicket = () => {
+    setEditingTicket(undefined);
+    setIsTicketModalOpen(true);
+  };
+
+  const handleEditTicket = (ticket: Ticket) => {
+    setEditingTicket(ticket);
+    setIsTicketModalOpen(true);
+  };
+
+  const handleSaveTicket = async (ticketData: Omit<Ticket, 'id' | 'createdAt' | 'updatedAt'>) => {
+    try {
+      if (editingTicket) {
+        // Update existing ticket
+        await updateTicket(editingTicket.id, ticketData);
+      } else {
+        // Create new ticket - Supabase generates ID, createdAt, and updatedAt
+        await addTicket(ticketData);
+      }
+      setIsTicketModalOpen(false);
+    } catch (error) {
+      logError(error, { operation: 'save-ticket-ui', metadata: { isEdit: !!editingTicket } });
+    }
+  };
+
+  const handleDeleteTicket = async (ticketId: string) => {
+    if (confirm(CONFIRMATION_MESSAGES.deleteTicket)) {
+      try {
+        await deleteTicket(ticketId);
+      } catch (error) {
+        logError(error, { operation: 'delete-ticket-ui', ticketId });
+      }
+    }
+  };
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'dashboard':
-        return <Dashboard tasks={tasks} onToggleTask={handleToggleTask} />;
+        return <Dashboard tasks={tasks} tickets={tickets} onToggleTask={handleToggleTask} />;
       case 'calendar':
         return (
           <CalendarView
@@ -94,23 +143,32 @@ function App() {
             onToggleTask={handleToggleTask}
           />
         );
+      case 'tickets':
+        return (
+          <TicketsList
+            tickets={tickets}
+            onCreateTicket={handleCreateTicket}
+            onEditTicket={handleEditTicket}
+            onDeleteTicket={handleDeleteTicket}
+          />
+        );
       default:
-        return <Dashboard tasks={tasks} onToggleTask={handleToggleTask} />;
+        return <Dashboard tasks={tasks} tickets={tickets} onToggleTask={handleToggleTask} />;
     }
   };
 
-  if (loading) {
+  if (loading || ticketsLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando tareas...</p>
+          <p className="text-gray-600">Cargando datos...</p>
         </div>
       </div>
     );
   }
 
-  if (error) {
+  if (error || ticketsError) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -120,7 +178,7 @@ function App() {
             </svg>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Error de conexión</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 mb-4">{error || ticketsError}</p>
           <button 
             onClick={() => window.location.reload()}
             className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
@@ -146,6 +204,14 @@ function App() {
         onSave={handleSaveTask}
         editingTask={editingTask}
         existingTasks={tasks}
+      />
+
+      <TicketModal
+        isOpen={isTicketModalOpen}
+        onClose={() => setIsTicketModalOpen(false)}
+        onSave={handleSaveTicket}
+        editingTicket={editingTicket}
+        existingTickets={tickets}
       />
     </div>
   );

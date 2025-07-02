@@ -83,3 +83,28 @@ export const getRelativeDateLabel = (date: Date, referenceDate: Date = new Date(
     return date.toLocaleDateString();
   }
 };
+
+// Función para formatear tiempo transcurrido (reemplaza formatDistanceToNow de date-fns)
+export const formatTimeAgo = (date: Date | string): string => {
+  const now = new Date();
+  const targetDate = typeof date === 'string' ? new Date(date) : date;
+  const diffInMinutes = Math.floor((now.getTime() - targetDate.getTime()) / (1000 * 60));
+
+  if (diffInMinutes < 1) return 'Ahora mismo';
+  if (diffInMinutes < 60) return `hace ${diffInMinutes} min`;
+  
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `hace ${diffInHours}h`;
+  
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays < 7) return `hace ${diffInDays}d`;
+  
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  if (diffInWeeks < 4) return `hace ${diffInWeeks} sem`;
+  
+  const diffInMonths = Math.floor(diffInDays / 30);
+  if (diffInMonths < 12) return `hace ${diffInMonths} mes`;
+  
+  const diffInYears = Math.floor(diffInDays / 365);
+  return `hace ${diffInYears} año${diffInYears > 1 ? 's' : ''}`;
+};
