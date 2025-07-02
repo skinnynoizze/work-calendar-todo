@@ -16,16 +16,22 @@ interface WeeklyOverviewProps {
 export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOverviewProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [selectedTasks, setSelectedTasks] = useState<TaskInstance[]>([]);
   
   const { dayNames } = LOCALE_NAMES;
   const today = new Date();
 
-  const openModal = (date: Date, tasks: TaskInstance[]) => {
+  const openModal = (date: Date) => {
     setSelectedDate(date);
-    setSelectedTasks(sortTasksByPriority(tasks));
     setIsModalOpen(true);
   };
+
+  // Get current tasks for selected date reactively
+  const selectedTasks = selectedDate ? 
+    sortTasksByPriority(
+      weeklyTasks.find(day => 
+        formatDate(day.date) === formatDate(selectedDate)
+      )?.tasks || []
+    ) : [];
 
   return (
     <>
@@ -101,7 +107,7 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
                     ))}
                     {tasks.length > UI_LIMITS.WEEKLY_TASKS_PREVIEW && (
                       <button
-                        onClick={() => openModal(date, tasks)}
+                        onClick={() => openModal(date)}
                         className="text-xs text-blue-600 px-2 py-1 hover:text-blue-800 hover:bg-gray-100 rounded transition-colors"
                       >
                         +{tasks.length - UI_LIMITS.WEEKLY_TASKS_PREVIEW}
