@@ -121,12 +121,12 @@ export function useSupabaseTasks(): UseSupabaseTasksReturn {
       // Convert Task updates to database format
       const dbUpdates: Partial<Database['public']['Tables']['tasks']['Update']> = {};
       if (updates.title !== undefined) dbUpdates.title = updates.title;
-      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.description !== undefined) dbUpdates.description = updates.description || null;
       if (updates.category !== undefined) dbUpdates.category = updates.category;
       if (updates.priority !== undefined) dbUpdates.priority = updates.priority;
       if (updates.recurrence !== undefined) dbUpdates.recurrence = updates.recurrence;
       if (updates.startDate !== undefined) dbUpdates.start_date = updates.startDate;
-      if (updates.endDate !== undefined) dbUpdates.end_date = updates.endDate;
+      if (updates.endDate !== undefined) dbUpdates.end_date = updates.endDate || null;
       if (updates.completed !== undefined) dbUpdates.completed = updates.completed;
       if (updates.completedDates !== undefined) dbUpdates.completed_dates = updates.completedDates;
       if (updates.color !== undefined) dbUpdates.color = updates.color;
