@@ -21,15 +21,21 @@ export default function UpcomingTasks({ taskInstances, onToggleTask }: UpcomingT
   const twoWeeks = new Date(today);
   twoWeeks.setDate(twoWeeks.getDate() + 14);
   
-  const upcomingHighPriorityTasks = sortTasksByPriority(
-    taskInstances.getForDateRange(today, twoWeeks)
-      .filter(instance => 
-        !instance.completed && 
-        instance.task.priority === 'high' &&
-        instance.date > formatDate(today) // Solo futuras, no hoy
-      )
-      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-  ).slice(0, UI_LIMITS.UPCOMING_HIGH_PRIORITY);
+  const upcomingHighPriorityTasks = taskInstances.getForDateRange(today, twoWeeks)
+    .filter(instance => 
+      !instance.completed && 
+      instance.task.priority === 'high' &&
+      instance.date > formatDate(today) // Solo futuras, no hoy
+    )
+    .sort((a, b) => {
+      // Primero ordenar por fecha
+      const dateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
+      if (dateCompare !== 0) return dateCompare;
+      
+      // Si es la misma fecha, ordenar alfabéticamente
+      return a.task.title.localeCompare(b.task.title);
+    })
+    .slice(0, UI_LIMITS.UPCOMING_HIGH_PRIORITY);
 
   // Get overdue tasks using pre-calculated instances
   const yesterday = new Date(today);
