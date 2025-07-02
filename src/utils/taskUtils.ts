@@ -195,15 +195,21 @@ export const getTaskStats = (
 
 export const sortTasksByPriority = (tasks: TaskInstance[]): TaskInstance[] => {
   return [...tasks].sort((a, b) => {
+    // 1. Primero ordenar por estado: pendientes (false) primero, completadas (true) después
+    if (a.completed !== b.completed) {
+      return a.completed ? 1 : -1;
+    }
+    
+    // 2. Luego ordenar por prioridad
     const aPriority = PRIORITY_ORDER[a.task.priority as keyof typeof PRIORITY_ORDER] ?? 3;
     const bPriority = PRIORITY_ORDER[b.task.priority as keyof typeof PRIORITY_ORDER] ?? 3;
     
-    // Si tienen la misma prioridad, ordenar por nombre alfabéticamente
-    if (aPriority === bPriority) {
-      return a.task.title.localeCompare(b.task.title);
+    if (aPriority !== bPriority) {
+      return aPriority - bPriority;
     }
     
-    return aPriority - bPriority;
+    // 3. Finalmente ordenar por nombre alfabéticamente
+    return a.task.title.localeCompare(b.task.title);
   });
 };
 
