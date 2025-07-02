@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { ViewMode } from './types';
 import { useTasksUI } from './hooks/useTasksUI';
 import { useTicketsUI } from './hooks/useTicketsUI';
+import { supabase } from './utils/supabase';
 import Header from './components/Layout/Header';
 import Dashboard from './components/Dashboard/Dashboard';
 import CalendarView from './components/Calendar/CalendarView';
@@ -9,6 +10,7 @@ import TasksList from './components/Tasks/TasksList';
 import TaskModal from './components/Tasks/TaskModal';
 import TicketsList from './components/Tickets/TicketsList';
 import TicketModal from './components/Tickets/TicketModal';
+import LoginForm from './components/Auth/LoginForm';
 
 /**
  * App principal - solo maneja routing y layout
@@ -22,7 +24,26 @@ import TicketModal from './components/Tickets/TicketModal';
  */
 function App() {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   
+  // Auth state management
+  useEffect(() => {
+    // Obtener usuario actual
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      setAuthLoading(false);
+    });
+
+    // Escuchar cambios de auth state
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      setAuthLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   // UI hooks que encapsulan toda la lógica CRUD
   const tasksUI = useTasksUI();
   const ticketsUI = useTicketsUI();
@@ -75,6 +96,23 @@ function App() {
         );
     }
   };
+
+  // Auth loading state
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Verificando autenticación...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // User not authenticated
+  if (!user) {
+    return <LoginForm />;
+  }
 
   // Loading state
   if (tasksUI.loading || ticketsUI.loading) {
