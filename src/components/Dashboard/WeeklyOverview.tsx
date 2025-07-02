@@ -53,9 +53,14 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
           const completionRate = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
 
           return (
-            <div key={formatDate(date)} className={`p-3 rounded-lg border ${
-              isToday ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
-            }`}>
+            <div 
+              key={formatDate(date)} 
+              className={`p-3 rounded-lg border cursor-pointer transition-colors hover:bg-opacity-70 ${
+                isToday ? 'bg-blue-50 border-blue-200 hover:bg-blue-100' : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+              }`}
+              onClick={() => openModal(date)}
+              title={`Ver todas las tareas del ${date.getDate()}`}
+            >
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center space-x-2">
                   <span className={`text-sm font-medium ${
@@ -87,7 +92,10 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
                     {sortTasksByPriority(tasks).slice(0, UI_LIMITS.WEEKLY_TASKS_PREVIEW).map((task) => (
                       <button
                         key={`${task.taskId}-${task.date}`}
-                        onClick={() => onToggleTask(task.taskId, task.date)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onToggleTask(task.taskId, task.date);
+                        }}
                         className={`text-xs px-2 py-1 rounded transition-all ${
                           task.completed
                             ? 'bg-green-100 text-green-800 line-through'
@@ -107,10 +115,13 @@ export default function WeeklyOverview({ weeklyTasks, onToggleTask }: WeeklyOver
                     ))}
                     {tasks.length > UI_LIMITS.WEEKLY_TASKS_PREVIEW && (
                       <button
-                        onClick={() => openModal(date)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openModal(date);
+                        }}
                         className="text-xs text-blue-600 px-2 py-1 hover:text-blue-800 hover:bg-gray-100 rounded transition-colors"
                       >
-                        +{tasks.length - UI_LIMITS.WEEKLY_TASKS_PREVIEW}
+                        +{tasks.length - UI_LIMITS.WEEKLY_TASKS_PREVIEW} más
                       </button>
                     )}
                   </div>
