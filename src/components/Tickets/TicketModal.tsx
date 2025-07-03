@@ -4,6 +4,7 @@ import { Ticket } from '../../types';
 import { formatDate } from '../../utils/dateUtils';
 import { TICKET_PRIORITY_LABELS, TICKET_STATUS_LABELS, DEFAULT_TICKET_CATEGORIES } from '../../utils/constants';
 import { getUniqueTicketCategories } from '../../utils/ticketUtils';
+import { useTechnicians } from '../../hooks/useTechnicians';
 
 interface TicketModalProps {
   isOpen: boolean;
@@ -66,6 +67,9 @@ export default function TicketModal({ isOpen, onClose, onSave, editingTicket, ex
     : allCategories.filter(cat => 
         cat.name.toLowerCase().includes(categorySearchTerm.toLowerCase())
       );
+
+  // Hook para obtener técnicos
+  const { technicians, loading: loadingTechs, error: errorTechs } = useTechnicians();
 
   useEffect(() => {
     if (editingTicket) {
@@ -361,13 +365,20 @@ export default function TicketModal({ isOpen, onClose, onSave, editingTicket, ex
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Técnico Asignado
             </label>
-            <input
-              type="text"
+            <select
               value={formData.assignedTo}
               onChange={(e) => setFormData(prev => ({ ...prev, assignedTo: e.target.value }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Nombre del técnico (opcional)"
-            />
+            >
+              <option value="">Sin asignar</option>
+              {technicians.map((tech) => (
+                <option key={tech.id} value={tech.display_name || tech.email}>
+                  {tech.display_name || tech.email}
+                </option>
+              ))}
+            </select>
+            {loadingTechs && <span className="text-xs text-gray-500">Cargando técnicos...</span>}
+            {errorTechs && <span className="text-xs text-red-500">{errorTechs}</span>}
           </div>
 
           {/* Notas */}
